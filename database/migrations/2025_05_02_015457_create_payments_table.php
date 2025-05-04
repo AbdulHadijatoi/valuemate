@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('payment_method_id')->constrained()->onDelete('cascade');
             $table->decimal('amount', 10, 2);
-            $table->enum('status', ['pending', 'completed', 'failed']);
-            $table->string('payment_reference');
+            $table->enum('status', ['pending', 'completed', 'failed'])->default('pending');
+            $table->string('payment_reference')->nullable();
             $table->timestamps();
         });
     }

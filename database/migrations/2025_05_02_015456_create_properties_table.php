@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('properties', function (Blueprint $table) {
             $table->id();
             $table->foreignId('property_type_id')->constrained()->onDelete('cascade');
-            $table->decimal('area_id', 10, 2);
-            $table->foreignId('location_id')->constrained()->onDelete('cascade');
-            $table->enum('status', ['available', 'sold', 'under review']);
+            $table->decimal('area', 10, 2);
+            $table->foreignId('location_id')->constrained()->onDelete('cascade')->nullable();
+            $table->enum('status', ['available', 'sold', 'under review'])->default('under review');
             $table->timestamps();
         });
     }

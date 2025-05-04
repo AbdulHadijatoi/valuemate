@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('banner_ads', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('image_path');
-            $table->dateTime('start_date');
-            $table->dateTime('end_date');
-            $table->enum('ad_type', ['daily', 'weekly', 'monthly', 'permanent']);
+            $table->foreignId('file_id')->constrained()->onDelete('cascade');
+            $table->dateTime('start_date')->nullable();
+            $table->dateTime('end_date')->nullable();
+            $table->enum('ad_type', ['daily', 'weekly', 'monthly', 'permanent'])->default('daily');
             $table->timestamps();
         });
     }

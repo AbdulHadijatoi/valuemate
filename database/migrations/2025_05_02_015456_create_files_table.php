@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('files', function (Blueprint $table) {
             $table->id();
             $table->string('path');
-            $table->enum('type', ['document', 'image']);
+            $table->enum('type', ['document', 'image'])->default('image');
             $table->timestamps();
         });
     }

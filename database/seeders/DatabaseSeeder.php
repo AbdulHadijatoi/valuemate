@@ -2,34 +2,181 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use App\Models\User;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Create a default user for foreign keys (if not already created)
+        if (!User::find(1)) {
+            User::factory()->create([
+                'id' => 1, 
+                'email' => 'admin@gmail.com',
+                'password' => bcrypt('password'), // Use bcrypt for password hashing
+                'name' => 'Talal',
+            ]);
+        }
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'admin@gmail.com',
-            'password' => bcrypt('password'),
+        // Locations
+        DB::table('locations')->insert([
+            ['name' => 'Dubai'],
+            ['name' => 'Abu Dhabi'],
+            ['name' => 'Sharjah'],
         ]);
 
-        $this->call([
-            ChatSeeder::class,
-            AreaSeeder::class,
-            LocationSeeder::class,
-            BannerAdSeeder::class,
-            InvoiceSeeder::class,
-            NotificationSeeder::class,
-            DocumentRequirementSeeder::class,
-            // Add any other model seeders you've made
+        // Property Types
+        DB::table('property_types')->insert([
+            ['name' => 'Apartment'],
+            ['name' => 'Villa'],
+            ['name' => 'Townhouse'],
         ]);
+
+        // Service Types
+        DB::table('service_types')->insert([
+            ['name' => 'Construction'],
+            ['name' => 'Purchase'],
+        ]);
+
+        // Settings
+        DB::table('settings')->insert([
+            ['key' => 'site_name', 'value' => 'ValuationPro'],
+            ['key' => 'currency', 'value' => 'AED'],
+        ]);
+
+        // Valuation Request Statuses
+        DB::table('valuation_request_statuses')->insert([
+            ['name' => 'Pending'],
+            ['name' => 'In Progress'],
+            ['name' => 'Completed'],
+            ['name' => 'Rejected'],
+        ]);
+
+        // Payment Methods
+        DB::table('payment_methods')->insert([
+            ['name' => 'Credit Card'],
+            ['name' => 'Bank Transfer'],
+            ['name' => 'Cash'],
+        ]);
+
+        // Companies
+        DB::table('companies')->insert([
+            ['name' => 'Valuators Inc.', 'status' => 'active', 'logo' => null],
+            ['name' => 'Real Estate Experts', 'status' => 'active', 'logo' => null],
+        ]);
+
+        // Company Details
+        DB::table('company_details')->insert([
+            [
+                'company_id' => 1,
+                'address' => '123 Business Street, Dubai',
+                'email' => 'info@valuators.com',
+                'phone' => '0501234567',
+                'website' => 'https://valuators.com',
+            ],
+            [
+                'company_id' => 2,
+                'address' => '456 Estate Ave, Abu Dhabi',
+                'email' => 'contact@reexperts.ae',
+                'phone' => '0507654321',
+                'website' => 'https://reexperts.ae',
+            ],
+        ]);
+
+        // Files
+        DB::table('files')->insert([
+            ['path' => 'documents/file1.pdf', 'type' => 'document'],
+            ['path' => 'images/photo1.jpg', 'type' => 'image'],
+        ]);
+
+        // Properties
+        DB::table('properties')->insert([
+            ['property_type_id' => 1, 'area' => 1200.50, 'location_id' => 1, 'status' => 'available'],
+            ['property_type_id' => 2, 'area' => 3000.00, 'location_id' => 2, 'status' => 'sold'],
+        ]);
+
+        // Areas
+        DB::table('areas')->insert([
+            ['name' => 'Downtown', 'location_id' => 1],
+            ['name' => 'Al Reem Island', 'location_id' => 2],
+        ]);
+
+        // Banner Ads
+        DB::table('banner_ads')->insert([
+            [
+                'title' => 'Summer Offer',
+                'file_id' => 2,
+                'start_date' => now(),
+                'end_date' => now()->addDays(30),
+                'ad_type' => 'monthly',
+            ],
+        ]);
+
+        // Chats
+        DB::table('chats')->insert([
+            ['user_id' => 1, 'message' => 'How do I request a valuation?', 'status' => 'pending'],
+        ]);
+
+        // Document Requirements
+        DB::table('document_requirements')->insert([
+            ['property_type_id' => 1, 'document_name' => 'Title Deed'],
+            ['property_type_id' => 2, 'document_name' => 'Utility Bill'],
+        ]);
+
+        // Invoices
+        DB::table('invoices')->insert([
+            [
+                'user_id' => 1,
+                'company_id' => 1,
+                'amount' => 1500.00,
+                'transaction_number' => Str::random(10),
+                'status' => 'paid',
+            ],
+        ]);
+
+        // Notifications
+        DB::table('notifications')->insert([
+            ['user_id' => 1, 'message' => 'Your valuation request has been completed.', 'status' => 'unread'],
+        ]);
+
+        // Payments
+        DB::table('payments')->insert([
+            [
+                'payment_method_id' => 1,
+                'amount' => 1500.00,
+                'status' => 'completed',
+                'payment_reference' => Str::random(12),
+            ],
+        ]);
+
+        // Pricing Rules
+        DB::table('pricing_rules')->insert([
+            ['property_type_id' => 1, 'area_range' => '1000-1500', 'price' => 500.00],
+            ['property_type_id' => 2, 'area_range' => '2000-3000', 'price' => 1200.00],
+        ]);
+
+        // Valuation Requests
+        DB::table('valuation_requests')->insert([
+            [
+                'company_id' => 1,
+                'user_id' => 1,
+                'status_id' => 1,
+                'property_type_id' => 1,
+                'area' => '1200',
+                'location_id' => 1,
+                'pricing_rule_id' => 1,
+                'total_amount' => 500.00,
+            ],
+        ]);
+
+        // Valuation Request Details
+        DB::table('valuation_request_details')->insert([
+            ['valuation_request_id' => 1, 'file_id' => 1],
+        ]);
+
+        
     }
 }
