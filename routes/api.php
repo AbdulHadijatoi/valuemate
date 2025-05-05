@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AreaController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BannerAdController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DocumentRequirementController;
@@ -22,3 +23,8 @@ Route::resource('invoices', InvoiceController::class);
 Route::resource('notifications', NotificationController::class);
 // Route::get('notifications', [NotificationController::class, 'index']);
 Route::resource('document-requirements', DocumentRequirementController::class);
+
+
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('auth:api')->post('/logout', [AuthController::class, 'logout']);
