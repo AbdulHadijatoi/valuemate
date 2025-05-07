@@ -8,7 +8,9 @@ use Illuminate\Http\Request;
 class ChatController extends Controller
 {
     public function index() { 
-        return Chat::all(); 
+        $user = auth()->user();
+        return Chat::where('user_id', $user->id)
+                    ->get(['id', 'user_id', 'message', 'created_at']); 
     }
 
     public function store(Request $r) {

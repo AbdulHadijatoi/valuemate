@@ -15,7 +15,11 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::resource('chats', ChatController::class);
+// add api auth routes group
+Route::middleware('auth')->group(function () {
+    Route::resource('chats', ChatController::class);
+});
+
 Route::resource('areas', AreaController::class);
 Route::resource('locations', LocationController::class);
 Route::resource('banner-ads', BannerAdController::class);
