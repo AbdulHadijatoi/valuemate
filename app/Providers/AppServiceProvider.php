@@ -21,7 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Schema::defaultStringLength(200);
+        Schema::defaultStringLength(191);
         Passport::loadKeysFrom(__DIR__.'/../secrets/oauth');
     }
 }
