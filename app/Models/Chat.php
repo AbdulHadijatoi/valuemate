@@ -22,4 +22,12 @@ class Chat extends Model
     {
         return $this->belongsTo(User::class, 'admin_id');
     }
+
+    public function getCreatedAtAttribute($value)
+    {
+        if($value == null) {
+            return null;
+        }
+        return \Carbon\Carbon::parse($value)->diffForHumans();
+    }
 }

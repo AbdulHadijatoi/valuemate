@@ -6,19 +6,29 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
+    use RefreshDatabase;
+    
     public function run(): void
     {
+        $adminRole = Role::firstOrCreate(['name' => 'admin','guard_name' => 'api']);       
+        $userRole = Role::firstOrCreate(['name' => 'client','guard_name' => 'api']);
+
         // Create a default user for foreign keys (if not already created)
         if (!User::find(1)) {
-            User::factory()->create([
+            $user = User::factory()->create([
                 'id' => 1, 
                 'email' => 'admin@gmail.com',
                 'password' => bcrypt('password'), // Use bcrypt for password hashing
                 'name' => 'Talal',
             ]);
+
+            // assign role to user
+            $user->assignRole($adminRole);
         }
 
         // Locations

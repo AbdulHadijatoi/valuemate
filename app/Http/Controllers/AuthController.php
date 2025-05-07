@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class AuthController extends Controller
 {
@@ -29,6 +30,9 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        $userRole = Role::firstOrCreate(['name' => 'client']);
+        $user->assignRole($userRole);
+        
         $token = $user->createToken('API Token')->accessToken;
 
         return response()->json([
