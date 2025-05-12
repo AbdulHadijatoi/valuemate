@@ -26,7 +26,7 @@ class UserController extends Controller
         ]);
     }
     
-    public function allData() { 
+    public function getData() { 
 
         $data = User::get();
                     
@@ -37,13 +37,19 @@ class UserController extends Controller
         ]);
     }
 
-    public function createUser(Request $r) {
+    public function store(Request $r) {
         $r->validate([
-            'message' => 'required'
+            'first_name'     => 'required|string|max:255',
+            'last_name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users',
+            'phone'    => 'nullable|string|phone|max:255|unique:users',
+            'password' => 'required|string|min:6|confirmed', // use password_confirmation field
         ]);
 
         $user = User::create([
-            'name'     => $r->name,
+            'first_name'     => $r->first_name,
+            'last_name'     => $r->last_name,
+            'phone'     => $r->phone,
             'email'    => $r->email,
             'password' => Hash::make($r->password),
         ]);
@@ -53,7 +59,70 @@ class UserController extends Controller
         
         return response()->json([
             'status' => true,
-            'message' => 'Success',
+            'message' => 'Successfully created user',
+        ]);
+    }
+
+    public function update(Request $r, $user_id) {
+        $r->validate([
+            'first_name'     => 'required|string|max:255',
+            'last_name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users,email,'.$user_id,
+            'phone'    => 'nullable|string|phone|max:255|unique:users,phone,'.$user_id,
+        ]);
+
+        $user = User::find($user_id);
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found',
+            ]);
+        }
+
+        $user->update($r->all());
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successfully updated user',
+        ]);
+    }
+
+    public function delete($user_id) {
+        $user = User::find($user_id);
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found',
+            ]);
+        }
+
+        $user->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successfully deleted user',
+        ]);
+    }
+
+    
+    public function updatePassword(Request $r, $user_id) {
+        $r->validate([
+            'password' => 'required|string|min:6|confirmed', // use password_confirmation field
+        ]);
+
+        $user = User::find($user_id);
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found',
+            ]);
+        }
+
+        $user->update(['password' => Hash::make($r->password)]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successfully updated password',
         ]);
     }
 

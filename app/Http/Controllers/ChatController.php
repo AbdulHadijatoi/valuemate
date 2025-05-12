@@ -24,7 +24,7 @@ class ChatController extends Controller
         ]);
     }
     
-    public function allData() { 
+    public function getData() { 
 
         $data = Chat::get(['user_id', 'message', 'created_at']);
                     
@@ -53,7 +53,7 @@ class ChatController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Success',
+            'message' => 'Successfully sent message',
         ]);
     }
     

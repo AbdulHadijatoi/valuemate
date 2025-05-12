@@ -12,4 +12,17 @@ class File extends Model
     protected $guarded = [
         // 'path', 'type'
     ];
+
+    public function getPathAttribute($value)
+    {
+        return url('storage/' . $value);
+    }
+
+    public function saveFile($file)
+    {
+        $path = $file->store('files', 'public');
+        $this->path = $path;
+        $this->type = $file->getClientMimeType();
+        $this->save();
+    }
 }

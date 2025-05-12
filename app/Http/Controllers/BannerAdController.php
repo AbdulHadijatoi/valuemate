@@ -7,29 +7,86 @@ use Illuminate\Http\Request;
 
 class BannerAdController extends Controller
 {
-    public function index() { 
-        return BannerAd::all(); 
+    public function getData() { 
+        $bannerAds = BannerAd::all();
+
+        return response()->json([
+            'status' => true,
+            'data' => $bannerAds
+        ], 200);
     }
     
     public function store(Request $r) {
-        return BannerAd::create($r->validate([
+        BannerAd::create($r->validate([
+            'title'=>'required',
+            'file'=>'required',
+            'link'=>'nullable',
+            'ad_type'=>'required'
+        ]));
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Banner Ad created successfully'
+        ], 200);
+    }
+
+    public function show($id) { 
+        $bannerAd = BannerAd::find($id);
+        
+        if (!$bannerAd) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Banner Ad not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => $bannerAd
+        ], 200);
+    }
+    
+    public function update(Request $r, $id) { 
+        $r->validate([
             'title'=>'required',
             'image'=>'required',
             'link'=>'nullable',
-            'duration_type'=>'required'
-        ]));
-    }
+            'ad_type'=>'required'
+        ]);
 
-    public function show(BannerAd $bannerAd) { 
-        return $bannerAd; 
+        $bannerAd = BannerAd::find($id);
+
+        if (!$bannerAd) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Banner Ad not found'
+            ], 404);
+        }
+
+        $bannerAd->update($r->all());
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Banner Ad updated successfully'
+        ], 200);
     }
     
-    public function update(Request $r, BannerAd $bannerAd) { 
-        $bannerAd->update($r->all()); return $bannerAd; 
-    }
-    
-    public function destroy(BannerAd $bannerAd) { 
-        $bannerAd->delete(); return response()->noContent(); 
+    public function destroy($id) { 
+        $bannerAd = BannerAd::find($id);
+        
+        if (!$bannerAd) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Banner Ad not found'
+            ], 404);
+        }
+
+        $bannerAd->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Banner Ad deleted successfully'
+        ], 200);
     }
     
 }

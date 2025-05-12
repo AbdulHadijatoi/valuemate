@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->foreignId('file_id')->constrained()->onDelete('cascade');
+            $table->string('link')->nullable();
             $table->dateTime('start_date')->nullable();
             $table->dateTime('end_date')->nullable();
             $table->enum('ad_type', ['daily', 'weekly', 'monthly', 'permanent'])->default('daily');

@@ -18,6 +18,17 @@ class PermissionSeeder extends Seeder
         $permissions = [
             'manage chats',
             'manage users',
+            'manage locations',
+            'manage files',
+            'manage invoices',
+            'manage banner ads',
+            'manage document requirements',
+            'manage notifications',
+            'manage areas',
+            'manage roles',
+            'manage permissions',
+            'manage settings',
+            'manage reports',
         ];
 
         $this->processPermissions($permissions);
