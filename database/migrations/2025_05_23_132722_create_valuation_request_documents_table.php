@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('valuation_request_details', function (Blueprint $table) {
+        Schema::create('valuation_request_documents', function (Blueprint $table) {
             $table->id();
             $table->foreignId('valuation_request_id')->constrained()->onDelete('cascade');
+            $table->foreignId('document_requirement_id')->constrained()->onDelete('cascade');
             $table->foreignId('file_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('valuation_request_details');
+        Schema::dropIfExists('valuation_request_documents');
     }
 };

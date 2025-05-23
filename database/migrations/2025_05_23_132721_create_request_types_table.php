@@ -11,11 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('document_requirements', function (Blueprint $table) {
+        Schema::create('request_types', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('property_type_id')->constrained()->onDelete('cascade');
-            $table->string('document_name');
-            $table->timestamps();
+            $table->string('name');
         });
     }
 
@@ -24,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('document_requirements');
+        Schema::dropIfExists('request_types');
     }
 };

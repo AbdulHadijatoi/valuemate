@@ -19,7 +19,24 @@ class LocationController extends Controller
             $locations->where('name', 'like', '%' . $request->search . '%');
         }
 
-        return $locations->paginate(10);
+        $locations = $locations->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => "Data retrieved",
+            'data' => $locations
+        ], 200);
+    }
+
+    public function index($id = null) { 
+
+        $data = Location::find($id);
+                    
+        return response()->json([
+            'status' => true,
+            'message' => 'Data retrieved',
+            'data' => $data??[]
+        ]);
     }
 
     public function store(Request $request) {
@@ -47,7 +64,14 @@ class LocationController extends Controller
             'longitude' => 'nullable|numeric',
         ]);
 
-        $location = Location::findOrFail($id);
+        $location = Location::find($id);
+
+        if (!$location) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Location not found'
+            ], 404);
+        }
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -65,7 +89,15 @@ class LocationController extends Controller
     }
     
     public function delete($id) {
-        $location = Location::findOrFail($id);
+        $location = Location::find($id);
+
+        if (!$location) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Location not found'
+            ], 404);
+        }
+
         $location->delete();
 
         return response()->json([

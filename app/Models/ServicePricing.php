@@ -2,20 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class DocumentRequirement extends Model
+class ServicePricing extends Model
 {
-    use HasFactory;
-
     protected $guarded = [
-        // 'property_type_id', 'document_name'
+        // 'service_type_id',
+        // 'property_type_id',
+        // 'company_id',
+        // 'price',
+        // 'currency',
     ];
 
     public function propertyType()
     {
         return $this->belongsTo(PropertyType::class);
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 
     public function serviceType()

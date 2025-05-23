@@ -3,27 +3,35 @@
 namespace App\Http\Controllers;
 
 use App\Models\BannerAd;
+use App\Models\Company;
+use App\Models\File;
 use App\Models\PropertyType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
-class PropertyTypeController extends Controller
+class CompanyController extends Controller
 {
     public function getData() { 
-        $property_types = PropertyType::all(); 
+        $data = Company::all(); 
         
         return response()->json([
             'status' => true,
-            'data' => $property_types
+            'data' => $data
         ], 200);
     }
     
     public function store(Request $r) {
         $r->validate([
             'name' => 'required|string|max:255',
+            'logo' => 'nullable',
         ]);
 
-        PropertyType::create([
+        $file = new File();
+        $file_path = $file->saveFile($r->file('logo'));
+
+        Company::create([
             'name' => $r->name,
+            'logo_file_id' => $file->id,
         ])->save();
 
         return response()->json([
@@ -33,9 +41,9 @@ class PropertyTypeController extends Controller
     }
 
     public function show($id) { 
-        $property_type = PropertyType::find($id);
+        $company = Company::find($id);
         
-        if (!$property_type) {
+        if (!$company) {
             return response()->json([
                 'status' => false,
                 'message' => 'Property Type not found'
@@ -44,26 +52,41 @@ class PropertyTypeController extends Controller
 
         return response()->json([
             'status' => true,
-            'data' => $property_type
+            'data' => $company
         ], 200);
     }
     
     public function update(Request $r, $id) { 
         $r->validate([
             'name' => 'required|string|max:255',
+            'logo' => 'nullable',
         ]);
 
-        $property_type = PropertyType::find($id);
+        $company = Company::find($id);
 
-        if (!$property_type) {
+        if (!$company) {
             return response()->json([
                 'status' => false,
                 'message' => 'Property Type not found'
             ], 404);
         }
 
-        $property_type->update([
+        // update file after removing old if uploaded
+        if ($r->hasFile('logo')) {
+            $file = new File();
+            $file_path = $file->saveFile($r->file('logo'));
+
+            // delete old file
+            $old_file = $company->logo;
+
+            if ($old_file) {
+                Storage::delete($old_file->path);
+            }
+        }
+
+        $company->update([
             'name' => $r->name,
+            'logo_file_id' => $file->id,
         ]);
 
         return response()->json([
@@ -72,17 +95,23 @@ class PropertyTypeController extends Controller
         ], 200);
     }
     
-    public function delete($id) { 
-        $property_type = PropertyType::find($id);
+    public function delete(Request $r) { 
+        $company = Company::find($r->id);
 
-        if (!$property_type) {
+        if (!$company) {
             return response()->json([
                 'status' => false,
                 'message' => 'Property Type not found'
             ], 404);
         }
 
-        $property_type->delete();
+        $old_file = $company->logo;
+        
+        if ($old_file) {
+            Storage::delete($old_file->path);
+        }
+
+        $company->delete();
 
         return response()->json([
             'status' => true,

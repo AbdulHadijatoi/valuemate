@@ -22,13 +22,20 @@ class PermissionSeeder extends Seeder
             'manage files',
             'manage invoices',
             'manage banner ads',
-            'manage document requirements',
+            'manage document-requirements',
             'manage notifications',
             'manage areas',
             'manage roles',
             'manage permissions',
             'manage settings',
             'manage reports',
+            'manage companies',
+            'manage property-types',
+            'manage app-settings',
+            'manage service-types',
+            'manage property-service-types',
+            'manage service-pricing',
+            'manage valuation-requests',
         ];
 
         $this->processPermissions($permissions);

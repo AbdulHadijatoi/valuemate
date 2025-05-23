@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('files', function (Blueprint $table) {
+        Schema::create('property_service_types', function (Blueprint $table) {
             $table->id();
-            $table->string('path');
-            $table->enum('type', ['document', 'image'])->default('image');
+            $table->foreignId('property_type_id')->constrained()->onDelete('cascade');
+            $table->foreignId('service_type_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('files');
+        Schema::dropIfExists('property_service_types');
     }
 };

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->enum('status', ['active', 'inactive'])->default('active');
-            $table->string('logo')->nullable();
+            $table->foreignId('logo_file_id')->nullable()->constrained('files')->onDelete('set null');
             $table->timestamps();
         });
     }

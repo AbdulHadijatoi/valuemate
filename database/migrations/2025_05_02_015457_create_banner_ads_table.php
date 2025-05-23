@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('banner_ads', function (Blueprint $table) {
             $table->id();
             $table->string('title');
+            $table->string('description')->nullable();
             $table->foreignId('file_id')->constrained()->onDelete('cascade');
             $table->string('link')->nullable();
             $table->dateTime('start_date')->nullable();

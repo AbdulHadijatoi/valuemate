@@ -9,6 +9,12 @@ class Setting extends Model
 {
     use HasFactory;
 
+    public $timestamps = false; // Disable created_at and updated_at
+
+    protected $primaryKey = 'key'; // Set primary key
+    public $incrementing = false; // Prevent auto-increment assumption
+    protected $keyType = 'string'; // Because 'key' is a string
+
     protected $guarded = [
         // 'key', 'value'
     ];

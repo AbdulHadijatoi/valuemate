@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
                 'id' => 1, 
                 'email' => 'admin@gmail.com',
                 'password' => bcrypt('password'), // Use bcrypt for password hashing
-                'name' => 'Talal',
+                'first_name' => 'Talal',
             ]);
 
             // assign role to user
@@ -40,9 +40,18 @@ class DatabaseSeeder extends Seeder
 
         // Property Types
         DB::table('property_types')->insert([
-            ['name' => 'Apartment'],
-            ['name' => 'Villa'],
-            ['name' => 'Townhouse'],
+            ['name' => 'Houses'],
+            ['name' => 'Apartments'],
+            ['name' => 'Residential Land'],
+            ['name' => 'Agricultural Land'],
+            ['name' => 'Industrial Land'],
+            ['name' => 'Commercial Land'],
+            ['name' => 'Commercial Shops'],
+            ['name' => 'Commercial Buildings'],
+            ['name' => 'Residential Complexes'],
+            ['name' => 'Commercial Complexes'],
+            ['name' => 'Warehouses'],
+            ['name' => 'Factories']
         ]);
 
         // Service Types
@@ -74,8 +83,8 @@ class DatabaseSeeder extends Seeder
 
         // Companies
         DB::table('companies')->insert([
-            ['name' => 'Valuators Inc.', 'status' => 'active', 'logo' => null],
-            ['name' => 'Real Estate Experts', 'status' => 'active', 'logo' => null],
+            ['name' => 'Valuators Inc.', 'status' => 'active'],
+            ['name' => 'Real Estate Experts', 'status' => 'active'],
         ]);
 
         // Company Details

@@ -42,7 +42,7 @@ class UserController extends Controller
             'first_name'     => 'required|string|max:255',
             'last_name'     => 'required|string|max:255',
             'email'    => 'required|string|email|max:255|unique:users',
-            'phone'    => 'nullable|string|phone|max:255|unique:users',
+            'phone'    => 'nullable|string|max:255|unique:users',
             'password' => 'required|string|min:6|confirmed', // use password_confirmation field
         ]);
 
@@ -68,7 +68,7 @@ class UserController extends Controller
             'first_name'     => 'required|string|max:255',
             'last_name'     => 'required|string|max:255',
             'email'    => 'required|string|email|max:255|unique:users,email,'.$user_id,
-            'phone'    => 'nullable|string|phone|max:255|unique:users,phone,'.$user_id,
+            'phone'    => 'nullable|string|max:255|unique:users,phone,'.$user_id,
         ]);
 
         $user = User::find($user_id);
@@ -107,7 +107,7 @@ class UserController extends Controller
     
     public function updatePassword(Request $r, $user_id) {
         $r->validate([
-            'password' => 'required|string|min:6|confirmed', // use password_confirmation field
+            '' => 'required|string|min:6|confirmed', // use password_confirmation field
         ]);
 
         $user = User::find($user_id);

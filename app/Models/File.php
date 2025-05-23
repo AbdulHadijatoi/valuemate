@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class File extends Model
 {
@@ -13,16 +14,21 @@ class File extends Model
         // 'path', 'type'
     ];
 
-    public function getPathAttribute($value)
+    // append full path to the model
+    protected $appends = ['full_path'];
+    public function getFullPathAttribute()
     {
-        return url('storage/' . $value);
+        return url(Storage::url($this->path));
     }
 
     public function saveFile($file)
     {
-        $path = $file->store('files', 'public');
+        $path = $file->store('files');
         $this->path = $path;
         $this->type = $file->getClientMimeType();
         $this->save();
+
+        // return the file path
+        return Storage::url($this->path);
     }
 }

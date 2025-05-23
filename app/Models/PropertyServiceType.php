@@ -2,19 +2,22 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PricingRule extends Model
+class PropertyServiceType extends Model
 {
-    use HasFactory;
-
     protected $guarded = [
-        // 'property_type_id', 'area_range', 'price'
+        // 'property_type_id',
+        // 'service_type_id',
     ];
 
     public function propertyType()
     {
         return $this->belongsTo(PropertyType::class);
+    }
+
+    public function serviceType()
+    {
+        return $this->belongsTo(ServiceType::class);
     }
 }
