@@ -141,8 +141,8 @@ class DatabaseSeeder extends Seeder
 
         // Document Requirements
         DB::table('document_requirements')->insert([
-            ['property_type_id' => 1, 'document_name' => 'Title Deed'],
-            ['property_type_id' => 2, 'document_name' => 'Utility Bill'],
+            ['property_type_id' => 1, 'service_type_id' => 1, 'document_name' => 'Title Deed'],
+            ['property_type_id' => 2, 'service_type_id' => 1, 'document_name' => 'Utility Bill'],
         ]);
 
         // Invoices
