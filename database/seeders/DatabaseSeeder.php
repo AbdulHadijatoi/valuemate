@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\ServicePricing;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -161,6 +162,16 @@ class DatabaseSeeder extends Seeder
             ['user_id' => 1, 'message' => 'Your valuation request has been completed.', 'status' => 'unread'],
         ]);
 
+        ServicePricing::create([
+            'service_type_id' => 1,
+            'property_type_id' => 1,
+            'company_id' => 1,
+            'request_type_id' => 1,
+            'area_from' => 100,
+            'area_to' => 900,
+            'price' => 102.00
+        ]);
+
         // Valuation Requests
         DB::table('valuation_requests')->insert([
             [
@@ -172,12 +183,25 @@ class DatabaseSeeder extends Seeder
                 'location_id' => 1,
                 'pricing_rule_id' => 1,
                 'total_amount' => 500.00,
+
+                "company_id" => 1,
+                "user_id" => 1,
+                "status_id" => 1,
+                "property_type_id" => 1,
+                "service_type_id" => 1,
+                "request_type_id" => 1,
+                "location_id" => 1,
+                "service_pricing_id" => 1,
+                "area_from" => 100,
+                "area_to" => 900,
+                "total_amount" => 102,
+                "reference" => "REFS123",
             ],
         ]);
 
         // Valuation Request Details
-        DB::table('valuation_request_details')->insert([
-            ['valuation_request_id' => 1, 'file_id' => 1],
+        DB::table('valuation_request_documents')->insert([
+            ['valuation_request_id' => 1, 'document_requirement_id' => 1, 'file_id' => 1],
         ]);
 
         // Payments
