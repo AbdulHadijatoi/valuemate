@@ -161,22 +161,6 @@ class DatabaseSeeder extends Seeder
             ['user_id' => 1, 'message' => 'Your valuation request has been completed.', 'status' => 'unread'],
         ]);
 
-        // Payments
-        DB::table('payments')->insert([
-            [
-                'payment_method_id' => 1,
-                'amount' => 1500.00,
-                'status' => 'completed',
-                'payment_reference' => Str::random(12),
-            ],
-        ]);
-
-        // Pricing Rules
-        DB::table('pricing_rules')->insert([
-            ['property_type_id' => 1, 'area_range' => '1000-1500', 'price' => 500.00],
-            ['property_type_id' => 2, 'area_range' => '2000-3000', 'price' => 1200.00],
-        ]);
-
         // Valuation Requests
         DB::table('valuation_requests')->insert([
             [
@@ -195,6 +179,17 @@ class DatabaseSeeder extends Seeder
         DB::table('valuation_request_details')->insert([
             ['valuation_request_id' => 1, 'file_id' => 1],
         ]);
+
+        // Payments
+        DB::table('payments')->insert([
+            [
+                'payment_method_id' => 1,
+                'valuation_request_id' => 1,
+                'amount' => 1500.00,
+                'status' => 'completed',
+                'payment_reference' => Str::random(12),
+            ],
+        ]);        
 
         
     }
