@@ -17,7 +17,6 @@ use Illuminate\Http\Request;
 class ConstantController extends Controller
 {
     public function getData() { 
-        $payment_methods = PaymentMethod::all(); 
         $service_types = ServiceType::all(); 
         $companies = Company::all(); 
         $locations = Location::all(); 
@@ -25,6 +24,7 @@ class ConstantController extends Controller
         $requestTypes = RequestType::all(); 
         $requiredDocuments = DocumentRequirement::get(['property_type_id', 'service_type_id','document_name']); 
         $propertyServiceTypes = PropertyServiceType::with(['propertyType', 'serviceType'])->get();
+        $payment_methods = PaymentMethod::get(['id', 'name']);
     
         $propertyServiceTypes = $propertyServiceTypes->groupBy(function ($item) {
             return $item->propertyType->name ?? 'Unknown'; // Group by property type name

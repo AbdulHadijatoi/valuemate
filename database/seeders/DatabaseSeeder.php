@@ -76,9 +76,9 @@ class DatabaseSeeder extends Seeder
 
         // Payment Methods
         DB::table('payment_methods')->insert([
-            ['name' => 'Credit Card'],
-            ['name' => 'Bank Transfer'],
-            ['name' => 'Cash'],
+            ['name' => 'Thawani'],
+            ['name' => 'Apple Pay'],
+            ['name' => 'Google Pay'],
         ]);
 
         // Companies

@@ -14,6 +14,11 @@ return new class extends Migration
         Schema::create('payment_methods', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->boolean('status')->default(true);
+            $table->string('logo')->nullable();
+            $table->string('url')->nullable();
+            $table->string('public_key')->nullable();
+            $table->string('private_key')->nullable();
         });
     }
 

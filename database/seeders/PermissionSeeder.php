@@ -36,6 +36,7 @@ class PermissionSeeder extends Seeder
             'manage property-service-types',
             'manage service-pricing',
             'manage valuation-requests',
+            'manage payments',
         ];
 
         $this->processPermissions($permissions);

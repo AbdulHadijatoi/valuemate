@@ -17,4 +17,9 @@ class Payment extends Model
     {
         return $this->belongsTo(PaymentMethod::class);
     }
+
+    public function valuationRequest()
+    {
+        return $this->belongsTo(ValuationRequest::class);
+    }
 }

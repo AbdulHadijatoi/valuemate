@@ -11,6 +11,7 @@ use App\Http\Controllers\DocumentRequirementController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PropertyServiceTypeController;
 use App\Http\Controllers\PropertyTypeController;
 use App\Http\Controllers\ServicePricingController;
@@ -36,6 +37,9 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/', [ChatController::class, 'index']);
         Route::post('send-message', [ChatController::class, 'sendUserMessage']);
     });
+
+    Route::post('create-valuation-request', [ValuationRequestController::class, 'store']);
+    Route::post('upload-valuation-documents', [ValuationRequestController::class, 'uploadDocuments']);
 
     Route::get('/user/{id}', [UserController::class, 'index']);
     
@@ -137,8 +141,26 @@ Route::middleware('auth:api')->group(function () {
             Route::post('update-status', [ValuationRequestController::class, 'updateStatus']);
             Route::post('delete/{id}', [ValuationRequestController::class, 'delete']);
         });
+        
+        Route::group(['prefix' => 'payments', 'middleware'=>'permission:manage payments'], function () {
+            Route::get('/', [PaymentController::class, 'getData']);
+        });
 
     });
+});
+
+Route::get('/create-thawani-checkout', [PaymentController::class, 'createThawaniCheckout']);
+Route::get('/cancel', function(){
+    return response()->json([
+        'status' => false,
+        'message' => 'Payment cancelled',
+    ]);
+});
+Route::get('/success', function(){
+    return response()->json([
+        'status' => true,
+        'message' => 'Payment successful',
+    ]);
 });
 
 
