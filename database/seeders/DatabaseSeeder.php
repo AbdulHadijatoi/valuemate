@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\RequestType;
 use App\Models\ServicePricing;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -160,6 +161,16 @@ class DatabaseSeeder extends Seeder
         // Notifications
         DB::table('notifications')->insert([
             ['user_id' => 1, 'message' => 'Your valuation request has been completed.', 'status' => 'unread'],
+        ]);
+
+        RequestType::create([
+            'name' => 'Normal',
+            'description' => 'Standard valuation request',
+        ]);
+        
+        RequestType::create([
+            'name' => 'Express',
+            'description' => 'Fast-tracked valuation request',
         ]);
 
         ServicePricing::create([
