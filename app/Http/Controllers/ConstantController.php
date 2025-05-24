@@ -12,6 +12,7 @@ use App\Models\PropertyType;
 use App\Models\RequestType;
 use App\Models\ServicePricing;
 use App\Models\ServiceType;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 
 class ConstantController extends Controller
@@ -59,6 +60,23 @@ class ConstantController extends Controller
         return response()->json([
             'status' => true,
             'data' => $data
+        ], 200);
+    }
+
+    public function getSettingValue(Request $request) { 
+
+        $value = Setting::getValue($request->key);
+        
+        if (!$value) {
+            return response()->json([
+                'status' => false,
+                'message' => "Setting option not found"
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => $value
         ], 200);
     }
      

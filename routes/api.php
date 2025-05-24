@@ -29,6 +29,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 
 Route::get('constants', [ConstantController::class, 'getData']);
+Route::post('settings', [ConstantController::class, 'getSettingValue']);
 
 Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -76,9 +77,10 @@ Route::middleware('auth:api')->group(function () {
         });
         
         Route::group(['prefix' => 'companies', 'middleware'=>'permission:manage companies'], function () {
-            Route::get('/', [CompanyController::class, 'getData']);
+            Route::post('/', [CompanyController::class, 'getData']);
             Route::get('get/{id}', [CompanyController::class, 'show']);
             Route::post('create', [CompanyController::class, 'store']);
+            Route::post('export', [CompanyController::class, 'export']);
             Route::post('update/{id}', [CompanyController::class, 'update']);
             Route::post('delete/{id}', [CompanyController::class, 'delete']);
         });

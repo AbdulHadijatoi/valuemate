@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -67,7 +68,8 @@ class AuthController extends Controller
             'message' => 'User logged in successfully',
             'data' => [
                 'user'  => $user,
-                'token' => $token
+                'token' => $token,
+                'placeholder_image' => Setting::getValue('placeholder-image'),
             ],
         ]);
     }

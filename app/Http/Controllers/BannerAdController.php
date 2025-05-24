@@ -66,6 +66,7 @@ class BannerAdController extends Controller
     }
     
     public function update(Request $r, $id) { 
+
         $r->validate([
             'title'=>'required',
             'image'=>'required',

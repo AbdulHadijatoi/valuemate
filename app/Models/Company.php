@@ -14,11 +14,16 @@ class Company extends Model
         // 'name', 'status', 'logo_file_id'
     ];
 
-    protected $with = ['logo'];
+    protected $with = ['logo', 'companyDetails'];
 
     public function logo()
     {
         return $this->belongsTo(File::class, 'logo_file_id');
+    }
+
+    public function companyDetails()
+    {
+        return $this->hasOne(CompanyDetail::class, 'company_id');
     }
 
     public function getCreatedAtAttribute($value)
