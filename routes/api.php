@@ -138,7 +138,9 @@ Route::middleware('auth:api')->group(function () {
             Route::post('/', [ValuationRequestController::class, 'getData']);
             Route::post('get/{request_id}', [ValuationRequestController::class, 'show']);
             Route::post('create', [ValuationRequestController::class, 'store']);
+            Route::post('export', [ValuationRequestController::class, 'export']);
             Route::post('upload-documents', [ValuationRequestController::class, 'uploadDocuments']);
+            Route::post('view-documents', [ValuationRequestController::class, 'viewDocuments']);
             Route::post('update/{id}', [ValuationRequestController::class, 'update']);
             Route::post('update-status', [ValuationRequestController::class, 'updateStatus']);
             Route::post('delete/{id}', [ValuationRequestController::class, 'delete']);

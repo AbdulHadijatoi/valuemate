@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\ExportData;
+use App\Models\DocumentRequirement;
 use App\Models\File;
 use App\Models\PropertyServiceType;
 use App\Models\ServicePricing;
@@ -33,7 +34,7 @@ class ValuationRequestController extends Controller
             $total = $data->total();
         }
 
-        $data = $data->map(function ($item) {
+        $data = $data->map(function ($item) use ($export){
             $data = [];
             $data['id'] = $item->id;
             $data['company_name'] = $item->company ? $item->company->name : '-';
@@ -49,6 +50,16 @@ class ValuationRequestController extends Controller
             $data['reference'] = $item->reference ?? '-';
             $data['created_at_date'] = $item->created_at ? Carbon::parse($item->created_at)->format('Y-m-d') : null;
             $data['created_at_time'] = $item->created_at ? Carbon::parse($item->created_at)->format('H:i:s') : null;
+
+            if(!$export) {  
+                $data['service_type_id'] = $item->service_type_id;
+                $data['property_type_id'] = $item->property_type_id;
+                $data['has_documents'] = $item->documents ->count() > 0 ? true : false;
+                $requiredDocs = DocumentRequirement::where('property_type_id', $item->property_type_id)
+                    ->where('service_type_id', $item->service_type_id)
+                    ->get(['id', 'document_name']);
+                $data['required_documents'] = $requiredDocs && $requiredDocs->count() > 0? $requiredDocs :null;
+            }
             return $data;
         });
 
@@ -88,7 +99,7 @@ class ValuationRequestController extends Controller
             "Request Type",
             "Location",
             "Service Pricing",
-            "Area",
+            "Area (meter squire)",
             "Total Amount",
             "Status",
             "Reference",
@@ -100,6 +111,35 @@ class ValuationRequestController extends Controller
     }
     
     
+    public function viewDocuments(Request $r) {
+        $r->validate([
+            'valuation_request_id' => 'required|exists:valuation_requests,id',
+        ]);
+
+        $valuationRequest = ValuationRequest::find($r->valuation_request_id);
+    
+        if (!$valuationRequest) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Valuation Request not found.'
+            ], 404);
+        }
+    
+        $documents = $valuationRequest->documents()->get();
+       
+        $documents = $documents->map(function ($document) {
+            return [
+                'id' => $document->id,
+                'document_name' => $document->documentRequirement ?$document->documentRequirement->document_name:null,
+                'full_path' => $document->document ? $document->document->full_path : null,
+            ];
+        });
+        return response()->json([
+            'status' => true,
+            'data' => $documents
+        ], 200);
+    }
+
     public function store(Request $r) {
         $r->validate([
             'company_id' => 'required|exists:companies,id',
@@ -280,10 +320,13 @@ class ValuationRequestController extends Controller
     public function uploadDocuments(Request $r) {
         $r->validate([
             'valuation_request_id' => 'required|exists:valuation_requests,id',
-            'document_requirement_id' => 'required|exists:document_requirements,id',
-            'document_file' => 'file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'document_requirement_id' => 'required|array',
+            'document_requirement_id.*' => 'required|exists:document_requirements,id',
+            'document_file' => 'required|array',
+            'document_file.*' => 'file',
         ]);
     
+
         $valuationRequest = ValuationRequest::find($r->valuation_request_id);
     
         if (!$valuationRequest) {
@@ -293,19 +336,26 @@ class ValuationRequestController extends Controller
             ], 404);
         }
     
-        if ($r->hasFile('document_file')) {
+        foreach ($r->file('document_file') as $index => $fileInput) {
+            $requirementId = $r->document_requirement_id[$index] ?? null;
+    
+            if (!$requirementId) {
+                continue; // skip if no matching requirement
+            }
+    
             $file = new File();
-            $file_path = $file->saveFile($r->file('document_file'));
+            $file_path = $file->saveFile($fileInput);
+    
+            $valuationRequest->documents()->create([
+                'document_requirement_id' => $requirementId,
+                'file_id' => $file->id,
+            ]);
         }
-
-        $valuationRequest->documents()->create([
-            'document_requirement_id' => $r->document_requirement_id,
-            'file_id' => $file->id,
-        ]);
     
         return response()->json([
             'status' => true,
             'message' => 'Documents uploaded successfully.'
         ], 200);
     }
+    
 }
