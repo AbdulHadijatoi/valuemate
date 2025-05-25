@@ -28,7 +28,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 
-Route::get('constants', [ConstantController::class, 'getData']);
+Route::post('constants', [ConstantController::class, 'getData']);
 Route::post('settings', [ConstantController::class, 'getSettingValue']);
 
 Route::middleware('auth:api')->group(function () {
@@ -135,8 +135,8 @@ Route::middleware('auth:api')->group(function () {
         });
         
         Route::group(['prefix' => 'valuation-requests', 'middleware'=>'permission:manage valuation-requests'], function () {
-            Route::get('/', [ValuationRequestController::class, 'getData']);
-            Route::get('get/{request_id}', [ValuationRequestController::class, 'show']);
+            Route::post('/', [ValuationRequestController::class, 'getData']);
+            Route::post('get/{request_id}', [ValuationRequestController::class, 'show']);
             Route::post('create', [ValuationRequestController::class, 'store']);
             Route::post('upload-documents', [ValuationRequestController::class, 'uploadDocuments']);
             Route::post('update/{id}', [ValuationRequestController::class, 'update']);

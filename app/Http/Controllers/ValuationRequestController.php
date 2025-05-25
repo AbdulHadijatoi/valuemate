@@ -2,53 +2,156 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ExportData;
 use App\Models\File;
 use App\Models\PropertyServiceType;
 use App\Models\ServicePricing;
 use App\Models\ServiceType;
 use App\Models\Setting;
 use App\Models\ValuationRequest;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ValuationRequestController extends Controller
 {
-    public function getData() { 
-        $data = ValuationRequest::get();
-    
+    public function dataQuery($request, $export = false) {
+        
+        $data = ValuationRequest::when($request->search_keyword, function($query) use ($request){
+            $query->where('name', 'like', '%' . $request->search_keyword . '%');
+        })
+        ->when($request->from_date && $request->to_date, function ($query) use ($request) {
+            return $query->whereDate('created_at','>=', $request->from_date)
+                        ->whereDate('created_at','<=', $request->to_date);
+        });
+
+        if ($export) {
+            $data = $data->get();
+            $total = $data->count();
+        }else{
+            $data = $data->paginate($request->per_page);
+            $total = $data->total();
+        }
+
+        $data = $data->map(function ($item) {
+            $data = [];
+            $data['id'] = $item->id;
+            $data['company_name'] = $item->company ? $item->company->name : '-';
+            $data['user_name'] = $item->user ? $item->user->first_name .' '. $item->user->last_name : '-';
+            $data['property_type'] = $item->propertyType ? $item->propertyType->name : '-';
+            $data['service_type'] = $item->serviceType ? $item->serviceType->name : '-';
+            $data['request_type'] = $item->requestType ? $item->requestType->name : '-';
+            $data['location'] = $item->location ? $item->location->name : '-';
+            $data['service_pricing'] = $item->servicePricing ? $item->servicePricing->price : 'default';
+            $data['area'] = $item->area ?? '-';
+            $data['total_amount'] = $item->total_amount ?? '-';
+            $data['status'] = $item->status ? $item->status->name : '-';
+            $data['reference'] = $item->reference ?? '-';
+            $data['created_at_date'] = $item->created_at ? Carbon::parse($item->created_at)->format('Y-m-d') : null;
+            $data['created_at_time'] = $item->created_at ? Carbon::parse($item->created_at)->format('H:i:s') : null;
+            return $data;
+        });
+
+        return [
+            'data' => $data,
+            'total' => $total,
+        ];
+    }
+
+    public function getData(Request $request, $export = false) { 
+        $request->validate([
+            "from_date" => "nullable",
+            "to_date" => "nullable",
+            "per_page" => "nullable",
+            "search_keyword" => "nullable",
+        ]);
+
+        $data = $this->dataQuery($request, $export);
+        $total = $data['total'];
+        
         return response()->json([
             'status' => true,
-            'data' => $data
+            'data' => $data['data'],
+            "total" => $total,
         ], 200);
+    }
+
+    public function export(Request $request){
+        $data = $this->dataQuery($request, true)['data'];
+        
+        $headings = [
+            "Id",
+            "Company Name",
+            "User Name",
+            "Property Type",
+            "Service Type",
+            "Request Type",
+            "Location",
+            "Service Pricing",
+            "Area",
+            "Total Amount",
+            "Status",
+            "Reference",
+            "Created At Date",
+            "Created At Time"
+        ];
+
+        return Excel::download(new ExportData(collect($data),$headings), "data_export_" . time() . ".xlsx" );
     }
     
     
     public function store(Request $r) {
         $r->validate([
             'company_id' => 'required|exists:companies,id',
-            'user_id' => 'required|exists:users,id',
+            'user_id' => 'nullable|exists:users,id',
             'property_type_id' => 'required|exists:property_types,id',
             'service_type_id' => 'required|exists:service_types,id',
             'request_type_id' => 'required|exists:request_types,id',
             'location_id' => 'required|exists:locations,id',
-            'service_pricing_id' => 'required|exists:service_pricings,id',
-            'area_from' => 'required|numeric',
-            'area_to' => 'required|numeric',
-            'total_amount' => 'required|numeric',
-            'reference' => 'required|string|max:255',
+            'service_pricing_id' => 'nullable|exists:service_pricings,id',
+            'area' => 'required|numeric',
         ]);
+
+        if($r->user_id && !auth()->user()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You do not have permission to create a valuation request for another user.'
+            ], 403);
+        }
+
+        $user_id = $r->user_id ?? auth()->id();
     
+        // calculate total amount based on service pricing
+        $service_pricing_id = null;
+        if($r->service_pricing_id) {
+           
+            $servicePricing = ServicePricing::find($r->service_pricing_id);
+            if (!$servicePricing) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Service Pricing not found.'
+                ], 404);
+            }
+            $service_pricing_id = $servicePricing->id;
+            $total_amount = $servicePricing->price;
+        } else {
+            // If no service pricing is provided, set total amount to 0
+            $total_amount = $r->total_amount;
+        }            
+
+        $reference = 'VR-' . time() . '-' . $user_id;
+
         $valuation_request = ValuationRequest::create([
             "company_id" => $r->company_id,
-            "user_id" => $r->user_id,
+            "user_id" => $user_id,
             "property_type_id" => $r->property_type_id,
             "service_type_id" => $r->service_type_id,
             "request_type_id" => $r->request_type_id,
             "location_id" => $r->location_id,
-            "service_pricing_id" => $r->service_pricing_id,
-            "area_from" => $r->area_from,
-            "area_to" => $r->area_to,
-            "total_amount" => $r->total_amount,
-            "reference" => $r->reference
+            "service_pricing_id" => $service_pricing_id??null,
+            "area" => $r->area,
+            "total_amount" => $total_amount,
+            "reference" => $reference
         ]);
     
         return response()->json([
@@ -102,17 +205,13 @@ class ValuationRequestController extends Controller
     public function update(Request $r, $id) {
         $r->validate([
             'company_id' => 'required|exists:companies,id',
-            'user_id' => 'required|exists:users,id',
             'status_id' => 'required|exists:valuation_request_statuses,id',
             'property_type_id' => 'required|exists:property_types,id',
             'service_type_id' => 'required|exists:service_types,id',
             'request_type_id' => 'required|exists:request_types,id',
             'location_id' => 'required|exists:locations,id',
-            'service_pricing_id' => 'required|exists:service_pricings,id',
-            'area_from' => 'required|numeric',
-            'area_to' => 'required|numeric',
-            'total_amount' => 'required|numeric',
-            'reference' => 'required|string|max:255',
+            'service_pricing_id' => 'nullable|exists:service_pricings,id',
+            'area' => 'required|numeric',
         ]);
     
         $data = ValuationRequest::find($id);
@@ -123,20 +222,35 @@ class ValuationRequestController extends Controller
                 'message' => 'Valuation Request not found.'
             ], 404);
         }
+
+        // calculate total amount based on service pricing
+        $service_pricing_id = null;
+        if($r->service_pricing_id) {
+           
+            $servicePricing = ServicePricing::find($r->service_pricing_id);
+            if (!$servicePricing) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Service Pricing not found.'
+                ], 404);
+            }
+            $service_pricing_id = $servicePricing->id;
+            $total_amount = $servicePricing->price;
+        } else {
+            // If no service pricing is provided, set total amount to 0
+            $total_amount = $r->total_amount;
+        }  
     
         $data->update([
             "company_id" => $r->company_id,
-            "user_id" => $r->user_id,
             "status_id" => $r->status_id,
             "property_type_id" => $r->property_type_id,
             "service_type_id" => $r->service_type_id,
             "request_type_id" => $r->request_type_id,
             "location_id" => $r->location_id,
-            "service_pricing_id" => $r->service_pricing_id,
-            "area_from" => $r->area_from,
-            "area_to" => $r->area_to,
-            "total_amount" => $r->total_amount,
-            "reference" => $r->reference
+            "service_pricing_id" => $service_pricing_id??null,
+            "area" => $r->area,
+            "total_amount" => $total_amount,
         ]);
     
         return response()->json([

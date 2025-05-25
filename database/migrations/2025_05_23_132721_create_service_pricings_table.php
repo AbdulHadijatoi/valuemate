@@ -34,9 +34,9 @@ return new class extends Migration
                 ->constrained('request_types')
                 ->onDelete('cascade');
             
-            $table->double('area_from', 10, 2);
-            $table->double('area_to', 10, 2);
-            $table->double('price', 8, 2);
+            $table->double('area_from', 10, 3);
+            $table->double('area_to', 10, 3);
+            $table->double('price', 8, 3);
             $table->string('currency')->default('OMR');
             $table->timestamps();
         });

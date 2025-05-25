@@ -17,13 +17,12 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('status_id')->default(1)->constrained('valuation_request_statuses')->onDelete('cascade');
             $table->foreignId('property_type_id')->constrained()->onDelete('cascade');
-            $table->foreignId('service_type_id')->constrained()->onDelete('cascade');
+            $table->foreignId('service_type_id')->default(1)->constrained()->onDelete('cascade');
             $table->foreignId('request_type_id')->constrained()->onDelete('cascade');
             $table->foreignId('location_id')->constrained()->onDelete('cascade');
-            $table->foreignId('service_pricing_id')->constrained()->onDelete('cascade');
-            $table->string('area_from')->nullable();
-            $table->string('area_to')->nullable();
-            $table->decimal('total_amount', 10, 2)->nullable();
+            $table->foreignId('service_pricing_id')->nullable()->constrained()->onDelete('cascade');
+            $table->decimal('area')->nullable();
+            $table->decimal('total_amount', 10, 3)->nullable();
             $table->string('reference')->nullable();
             $table->timestamps();
         });
