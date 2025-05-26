@@ -9,8 +9,6 @@ class ServiceType extends Model
 {
     use HasFactory;
 
-    public $timestamps = false; // Disable created_at and updated_at
-
     protected $guarded = [
         // 'name'
     ];

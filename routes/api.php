@@ -46,32 +46,35 @@ Route::middleware('auth:api')->group(function () {
     
     Route::group(['prefix' => 'admin'],function () {
         Route::group(['prefix' => 'chats', 'middleware'=>'permission:manage chats'], function () {
-            Route::get('/', [ChatController::class, 'getData']);
+            Route::post('/', [ChatController::class, 'getData']);
             Route::get('get/{id}', [ChatController::class, 'index']);
             Route::post('send-message', [ChatController::class, 'sendAdminMessage']);
         });
         
         Route::group(['prefix' => 'users', 'middleware'=>'permission:manage users'], function () {
-            Route::get('/', [UserController::class, 'getData']);
+            Route::post('/', [UserController::class, 'getData']);
             Route::get('get/{id}', [UserController::class, 'index']);
             Route::post('create', [UserController::class, 'store']);
+            Route::post('export', [UserController::class, 'export']);
             Route::post('update/{id}', [UserController::class, 'update']);
             Route::post('delete/{id}', [UserController::class, 'delete']);
             Route::post('update-password/{id}', [UserController::class, 'updatePassword']);
         });
         
         Route::group(['prefix' => 'locations', 'middleware'=>'permission:manage locations'], function () {
-            Route::get('/', [LocationController::class, 'getData']);
+            Route::post('/', [LocationController::class, 'getData']);
             Route::get('get/{id}', [LocationController::class, 'index']);
             Route::post('create', [LocationController::class, 'store']);
+            Route::post('export', [LocationController::class, 'export']);
             Route::post('update/{id}', [LocationController::class, 'update']);
             Route::post('delete/{id}', [LocationController::class, 'delete']);
         });
     
         Route::group(['prefix' => 'banner-ads', 'middleware'=>'permission:manage banner ads'], function () {
-            Route::get('/', [BannerAdController::class, 'getData']);
+            Route::post('/', [BannerAdController::class, 'getData']);
             Route::get('get/{id}', [BannerAdController::class, 'show']);
             Route::post('create', [BannerAdController::class, 'store']);
+            Route::post('export', [BannerAdController::class, 'export']);
             Route::post('update/{id}', [BannerAdController::class, 'update']);
             Route::post('delete/{id}', [BannerAdController::class, 'delete']);
         });
@@ -86,7 +89,7 @@ Route::middleware('auth:api')->group(function () {
         });
         
         Route::group(['prefix' => 'settings', 'middleware'=>'permission:manage settings'], function () {
-            Route::get('/', [SettingController::class, 'getData']);
+            Route::post('/', [SettingController::class, 'getData']);
             Route::get('get/{key}', [SettingController::class, 'show']);
             Route::post('create', [SettingController::class, 'store']);
             Route::post('upload-image', [SettingController::class, 'uploadImage']);
@@ -95,41 +98,46 @@ Route::middleware('auth:api')->group(function () {
         });
 
         Route::group(['prefix' => 'property-types', 'middleware'=>'permission:manage property-types'], function () {
-            Route::get('/', [PropertyTypeController::class, 'getData']);
+            Route::post('/', [PropertyTypeController::class, 'getData']);
             Route::get('get/{id}', [PropertyTypeController::class, 'show']);
             Route::post('create', [PropertyTypeController::class, 'store']);
+            Route::post('export', [PropertyTypeController::class, 'export']);
             Route::post('update/{id}', [PropertyTypeController::class, 'update']);
             Route::post('delete/{id}', [PropertyTypeController::class, 'delete']);
         });
 
         Route::group(['prefix' => 'service-types', 'middleware'=>'permission:manage service-types'], function () {
-            Route::get('/', [ServiceTypeController::class, 'get']);
-            Route::post('create', [ServiceTypeController::class, 'create']);
+            Route::post('/', [ServiceTypeController::class, 'getData']);
+            Route::post('create', [ServiceTypeController::class, 'store']);
+            Route::post('export', [ServiceTypeController::class, 'export']);
             Route::post('update/{id}', [ServiceTypeController::class, 'update']);
             Route::post('delete/{id}', [ServiceTypeController::class, 'delete']);
         });
         
         Route::group(['prefix' => 'property-service-types', 'middleware'=>'permission:manage property-service-types'], function () {
-            Route::get('/', [PropertyServiceTypeController::class, 'getData']);
+            Route::post('/', [PropertyServiceTypeController::class, 'getData']);
             Route::get('get/{property_type_id}', [PropertyServiceTypeController::class, 'show']);
             Route::post('create', [PropertyServiceTypeController::class, 'store']);
+            Route::post('export', [PropertyServiceTypeController::class, 'export']);
             Route::post('upload-image', [PropertyServiceTypeController::class, 'uploadImage']);
             Route::post('update/{key}', [PropertyServiceTypeController::class, 'update']);
             Route::post('delete/{key}', [PropertyServiceTypeController::class, 'delete']);
         });
         
         Route::group(['prefix' => 'service-pricing', 'middleware'=>'permission:manage service-pricing'], function () {
-            Route::get('/', [ServicePricingController::class, 'getData']);
+            Route::post('/', [ServicePricingController::class, 'getData']);
             Route::get('get/{property_type_id}', [ServicePricingController::class, 'show']);
             Route::post('create', [ServicePricingController::class, 'store']);
+            Route::post('export', [ServicePricingController::class, 'export']);
             Route::post('upload-image', [ServicePricingController::class, 'uploadImage']);
             Route::post('update/{key}', [ServicePricingController::class, 'update']);
             Route::post('delete/{key}', [ServicePricingController::class, 'delete']);
         });
         
         Route::group(['prefix' => 'document-requirements', 'middleware'=>'permission:manage document-requirements'], function () {
-            Route::get('/', [DocumentRequirementController::class, 'getData']);
+            Route::post('/', [DocumentRequirementController::class, 'getData']);
             Route::post('create', [DocumentRequirementController::class, 'store']);
+            Route::post('export', [DocumentRequirementController::class, 'export']);
             Route::post('update/{id}', [DocumentRequirementController::class, 'update']);
             Route::post('delete/{id}', [DocumentRequirementController::class, 'delete']);
         });
@@ -147,7 +155,7 @@ Route::middleware('auth:api')->group(function () {
         });
         
         Route::group(['prefix' => 'payments', 'middleware'=>'permission:manage payments'], function () {
-            Route::get('/', [PaymentController::class, 'getData']);
+            Route::post('/', [PaymentController::class, 'getData']);
         });
 
     });
