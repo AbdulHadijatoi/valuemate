@@ -126,12 +126,9 @@ Route::middleware('auth:api')->group(function () {
         
         Route::group(['prefix' => 'service-pricing', 'middleware'=>'permission:manage service-pricing'], function () {
             Route::post('/', [ServicePricingController::class, 'getData']);
-            Route::get('get/{property_type_id}', [ServicePricingController::class, 'show']);
             Route::post('create', [ServicePricingController::class, 'store']);
-            Route::post('export', [ServicePricingController::class, 'export']);
-            Route::post('upload-image', [ServicePricingController::class, 'uploadImage']);
-            Route::post('update/{key}', [ServicePricingController::class, 'update']);
-            Route::post('delete/{key}', [ServicePricingController::class, 'delete']);
+            Route::post('update/{id}', [ServicePricingController::class, 'update']);
+            Route::post('delete/{id}', [ServicePricingController::class, 'delete']);
         });
         
         Route::group(['prefix' => 'document-requirements', 'middleware'=>'permission:manage document-requirements'], function () {
@@ -156,6 +153,10 @@ Route::middleware('auth:api')->group(function () {
         
         Route::group(['prefix' => 'payments', 'middleware'=>'permission:manage payments'], function () {
             Route::post('/', [PaymentController::class, 'getData']);
+        });
+
+        Route::group(['prefix' => 'constants'], function(){
+            Route::post('/', [ConstantController::class, 'constantData']);
         });
 
     });

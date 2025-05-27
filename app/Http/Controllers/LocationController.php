@@ -9,21 +9,25 @@ class LocationController extends Controller
 {
 
     public function getData(Request $request) {
-        $request->validate([
-            'search' => 'nullable|string|max:255',
-        ]);
 
-        $locations = Location::query();
+        $locations = Location::get();
 
-        if ($request->has('search')) {
-            $locations->where('name', 'like', '%' . $request->search . '%');
-        }
-
-        $locations = $locations->get();
+        $locations = $locations->map(function($item) {
+            $data = [];
+            $data['id'] = $item->id;
+            $data['name'] = $item->name;
+            $data['description'] = $item->description;
+            $data['latitude'] = $item->latitude;
+            $data['longitude'] = $item->longitude;
+            $data['status'] = $item->status;
+            $data['map_url'] = $item->map_url; // This will use the accessor defined in the Location model
+            $data['created_at_date'] = $item->created_at ? $item->created_at->format('Y-m-d') : null;
+            $data['created_at_time'] = $item->created_at ? $item->created_at->format('H:i:s') : null;
+            return $data;
+        });
 
         return response()->json([
             'status' => true,
-            'message' => "Data retrieved",
             'data' => $locations
         ], 200);
     }
@@ -62,6 +66,7 @@ class LocationController extends Controller
             'description' => 'nullable|string',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
+            'status' => 'nullable',
         ]);
 
         $location = Location::find($id);
@@ -73,14 +78,14 @@ class LocationController extends Controller
             ], 404);
         }
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
+        
+        $location->update([
+            'name' => $request->name,
+            'description' => $request->description,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'status' => $request->status ?? 1, // Default to 1 if not provided
         ]);
-
-        $location->update($request->all());
 
         return response()->json([
             'status' => true,

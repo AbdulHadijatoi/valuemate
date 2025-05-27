@@ -12,4 +12,15 @@ class Location extends Model
     protected $guarded = [
         // 'name'
     ];
+
+    // append map url attribute and create it from latitude and longitude
+    protected $appends = ['map_url'];
+    
+    public function getMapUrlAttribute()
+    {
+        if ($this->latitude && $this->longitude) {
+            return "https://maps.google.com/?q={$this->latitude},{$this->longitude}";
+        }
+        return null;
+    }
 }

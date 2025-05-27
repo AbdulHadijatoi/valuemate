@@ -116,5 +116,40 @@ class ConstantController extends Controller
             'data' => $value
         ], 200);
     }
-     
+    
+    public function constantData(){
+        $property_types = PropertyType::get(['id','name']);
+        $companies = Company::get(['id','name']);
+        $request_types = RequestType::get(['id','name']);
+
+        $data = PropertyServiceType::with(['propertyType', 'serviceType'])->get();
+
+        $grouped = $data->groupBy(function ($item) {
+            return $item->propertyType->name ?? 'Unknown'; // Group by property type name
+        })->map(function ($items, $propertyTypeName) {
+            return [
+                'property_type' => $propertyTypeName,
+                'property_type_id' => $items->first()->property_type_id,
+                'services' => $items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'service_type_id' => $item->service_type_id,
+                        'service_type_name' => $item->serviceType->name ?? null,
+                        'created_at_date' => $item->serviceType && $item->serviceType->created_at ? Carbon::parse($item->serviceType->created_at)->format("Y-m-d") : null,
+                        'created_at_time' => $item->serviceType && $item->serviceType->created_at ? Carbon::parse($item->serviceType->created_at)->format("H:i:s") : null,
+                    ];
+                })->values(),
+            ];
+        })->values();
+
+        return response()->json([
+            'status' => true,
+            'data' => [
+                "service_types" => $grouped,
+                "property_types" => $property_types,
+                "companies" => $companies,
+                "request_types" => $request_types,
+            ]
+        ], 200);
+    }
 }

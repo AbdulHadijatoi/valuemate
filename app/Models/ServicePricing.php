@@ -28,4 +28,9 @@ class ServicePricing extends Model
     {
         return $this->belongsTo(ServiceType::class);
     }
+    
+    public function requestType()
+    {
+        return $this->belongsTo(RequestType::class);
+    }
 }
