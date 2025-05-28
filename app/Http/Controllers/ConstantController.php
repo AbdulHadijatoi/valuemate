@@ -16,6 +16,7 @@ use App\Models\Setting;
 use App\Models\ValuationRequestStatus;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ConstantController extends Controller
 {
@@ -102,13 +103,19 @@ class ConstantController extends Controller
 
     public function getSettingValue(Request $request) { 
 
-        $value = Setting::getValue($request->key);
+        $value = Setting::where('key', $request->key)->first(['value','is_file']);
         
         if (!$value) {
             return response()->json([
                 'status' => false,
                 'message' => "Setting option not found"
             ], 404);
+        }
+
+        if($value->is_file){
+            $value = url(Storage::url($value->value));
+        }else{
+            $value = $value->value;
         }
 
         return response()->json([

@@ -29,6 +29,6 @@ class File extends Model
         $this->save();
 
         // return the file path
-        return Storage::url($this->path);
+        return $this->path;
     }
 }

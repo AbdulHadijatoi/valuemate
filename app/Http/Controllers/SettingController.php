@@ -5,12 +5,31 @@ namespace App\Http\Controllers;
 use App\Models\File;
 use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class SettingController extends Controller
 {
     public function getData() { 
-        $data = Setting::all(); 
+        $data = Setting::get(); 
         
+
+        $data = $data->map(function($item, $index) {
+            $data = [];
+            
+            if($item->is_file){
+                $data['value'] = url(Storage::url($item->value));
+            }else{
+                $data['value'] = $item->value;
+            }
+
+            $data['key'] = $item->key;
+            $data['is_file'] = $item->is_file;
+            $data['index'] = ++$index;
+
+            return $data;
+        });
+
+
         return response()->json([
             'status' => true,
             'data' => $data
@@ -44,8 +63,12 @@ class SettingController extends Controller
         $file_path = $file->saveFile($r->file('value'));
     
         Setting::updateOrCreate(
-            ['key' => $r->key],
-            ['value' => $file_path]
+            [
+                'key' => $r->key
+            ],[
+                'value' => $file_path, 
+                'is_file' => 1
+            ],
         );
     
         return response()->json([

@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ExportData;
 use App\Models\Chat;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
@@ -26,15 +29,76 @@ class UserController extends Controller
         ]);
     }
     
-    public function getData() { 
+    public function dataQuery($request, $export = false) {
+        
+        $data = User::when($request->search_keyword, function($query) use ($request){
+            $query->where('first_name', 'like', '%' . $request->search_keyword . '%')
+                    ->orWhere('last_name', 'like', '%' . $request->search_keyword . '%');
+        })
+        ->when($request->from_date && $request->to_date, function ($query) use ($request) {
+            return $query->whereDate('created_at','>=', $request->from_date)
+                        ->whereDate('created_at','<=', $request->to_date);
+        });
 
-        $data = User::get();
-                    
+        if ($export) {
+            $data = $data->get();
+            $total = $data->count();
+        }else{
+            $data = $data->paginate($request->per_page);
+            $total = $data->total();
+        }
+
+        $data = $data->map(function ($item) use($export) {
+            $data = [];
+            if(!$export){
+                $data['id'] = $item->id;
+            }
+            $data['first_name'] = $item->first_name ?? null;
+            $data['last_name'] = $item->last_name ?? null;
+            $data['email'] = $item->email ?? null;
+            $data['phone'] = $item->phone??null;
+            $data['created_at_date'] = $item->created_at ? Carbon::parse($item->created_at)->format('Y-m-d') : null;
+            $data['created_at_time'] = $item->created_at ? Carbon::parse($item->created_at)->format('H:i:s') : null;
+            return $data;
+        });
+
+        return [
+            'data' => $data,
+            'total' => $total,
+        ];
+    }
+
+    public function getData(Request $request, $export = false) { 
+        $request->validate([
+            "from_date" => "nullable",
+            "to_date" => "nullable",
+            "per_page" => "nullable",
+            "search_keyword" => "nullable",
+        ]);
+
+        $data = $this->dataQuery($request, $export);
+        $total = $data['total'];
+        
         return response()->json([
             'status' => true,
-            'message' => 'Data retrieved',
-            'data' => $data
-        ]);
+            'data' => $data['data'],
+            "total" => $total,
+        ], 200);
+    }
+
+    public function export(Request $request){
+        $data = $this->dataQuery($request, true)['data'];
+        
+        $headings = [
+            "First Name",
+            "Last Name",
+            "Email",
+            "Phone",
+            "Created at Date",
+            "Created at Time",
+        ];
+
+        return Excel::download(new ExportData(collect($data),$headings), "data_export_" . time() . ".xlsx" );
     }
 
     public function store(Request $r) {
@@ -78,8 +142,18 @@ class UserController extends Controller
                 'message' => 'User not found',
             ]);
         }
+        $updateData = [
+            "first_name" => $r->first_name,
+            "last_name" => $r->last_name,
+            "email" => $r->email,
+            "phone" => $r->phone,
+        ];
 
-        $user->update($r->all());
+        if($r->password){
+            $updateData['password'] = Hash::make($r->password);
+        }
+        
+        $user->update($updateData);
 
         return response()->json([
             'status' => true,
@@ -107,7 +181,7 @@ class UserController extends Controller
     
     public function updatePassword(Request $r, $user_id) {
         $r->validate([
-            '' => 'required|string|min:6|confirmed', // use password_confirmation field
+            'password' => 'required|string|min:6|confirmed', // use password_confirmation field
         ]);
 
         $user = User::find($user_id);
