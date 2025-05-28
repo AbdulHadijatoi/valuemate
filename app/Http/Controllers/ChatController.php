@@ -14,9 +14,7 @@ class ChatController extends Controller
             $user_id = Auth::id();
         } 
 
-        $data = Chat::where('user_id', $user_id)
-                    ->get(['message', 'user_id', 'created_at']);
-                    
+        
         return response()->json([
             'status' => true,
             'message' => 'Data retrieved',
@@ -26,8 +24,28 @@ class ChatController extends Controller
     
     public function getData() { 
 
-        $data = Chat::get(['user_id', 'message', 'created_at']);
-                    
+        $data = Chat::get(['user_id', 'message','status', 'created_at']);
+        
+        $grouped = $data->groupBy(function ($item) {
+            return $item->propertyType->name ?? 'Unknown'; // Group by property type name
+        })->map(function ($items, $propertyTypeName) {
+            return [
+                'property_type' => $propertyTypeName,
+                'property_type_id' => $items->first()->property_type_id,
+                'services' => $items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'service_type_id' => $item->service_type_id,
+                        'service_type_name' => $item->serviceType->name ?? null,
+                        'created_at_date' => $item->serviceType && $item->serviceType->created_at ? Carbon::parse($item->serviceType->created_at)->format("Y-m-d") : null,
+                        'created_at_time' => $item->serviceType && $item->serviceType->created_at ? Carbon::parse($item->serviceType->created_at)->format("H:i:s") : null,
+                    ];
+                })->values(),
+            ];
+        })->values();
+
+        
+        
         return response()->json([
             'status' => true,
             'message' => 'Data retrieved',

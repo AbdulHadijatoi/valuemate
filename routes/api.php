@@ -4,6 +4,7 @@ use App\Http\Controllers\AreaController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BannerAdController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\ChatRoomController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ConstantController;
 use App\Http\Controllers\DocumentController;
@@ -49,6 +50,10 @@ Route::middleware('auth:api')->group(function () {
             Route::post('/', [ChatController::class, 'getData']);
             Route::get('get/{id}', [ChatController::class, 'index']);
             Route::post('send-message', [ChatController::class, 'sendAdminMessage']);
+
+            Route::get('/chat-room', [ChatRoomController::class, 'getOrCreateRoom']);
+            Route::post('/chat-message', [ChatRoomController::class, 'sendMessage']);
+            Route::get('/chat-messages/{roomId}', [ChatRoomController::class, 'getMessages']);
         });
         
         Route::group(['prefix' => 'users', 'middleware'=>'permission:manage users'], function () {

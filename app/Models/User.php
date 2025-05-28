@@ -51,14 +51,15 @@ class User extends Authenticatable
         ];
     }
 
-    public function getCreatedAtAttribute($value)
+    public function chatRoom()
     {
-        return Carbon::parse($value)->format('Y-m-d H:i:s');
+        return $this->hasOne(ChatRoom::class);
     }
-    
-    public function getUpdatedAtAttribute($value)
+
+    public function messages()
     {
-        return Carbon::parse($value)->format('Y-m-d H:i:s');
+        return $this->hasMany(ChatMessage::class, 'sender_id');
     }
+
 
 }
