@@ -128,10 +128,10 @@ class ConstantController extends Controller
         $property_types = PropertyType::get(['id','name']);
         $companies = Company::get(['id','name']);
         $request_types = RequestType::get(['id','name']);
-
+        $service_types = ServiceType::get(['id','name']);
         $data = PropertyServiceType::with(['propertyType', 'serviceType'])->get();
 
-        $grouped = $data->groupBy(function ($item) {
+        $property_service_types = $data->groupBy(function ($item) {
             return $item->propertyType->name ?? 'Unknown'; // Group by property type name
         })->map(function ($items, $propertyTypeName) {
             return [
@@ -152,7 +152,8 @@ class ConstantController extends Controller
         return response()->json([
             'status' => true,
             'data' => [
-                "service_types" => $grouped,
+                "property_service_types" => $property_service_types,
+                "service_types" => $service_types,
                 "property_types" => $property_types,
                 "companies" => $companies,
                 "request_types" => $request_types,

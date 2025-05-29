@@ -145,7 +145,7 @@ class ValuationRequestController extends Controller
             'company_id' => 'required|exists:companies,id',
             'user_id' => 'nullable|exists:users,id',
             'property_type_id' => 'required|exists:property_types,id',
-            'service_type_id' => 'required|exists:service_types,id',
+            'service_type_id' => 'nullable|exists:service_types,id',
             'request_type_id' => 'required|exists:request_types,id',
             'location_id' => 'required|exists:locations,id',
             'service_pricing_id' => 'nullable|exists:service_pricings,id',
