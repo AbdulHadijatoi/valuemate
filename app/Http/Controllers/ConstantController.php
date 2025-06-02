@@ -130,6 +130,7 @@ class ConstantController extends Controller
         $request_types = RequestType::get(['id','name']);
         $service_types = ServiceType::get(['id','name']);
         $data = PropertyServiceType::with(['propertyType', 'serviceType'])->get();
+        $settings = Setting::get();
 
         $property_service_types = $data->groupBy(function ($item) {
             return $item->propertyType->name ?? 'Unknown'; // Group by property type name
@@ -157,6 +158,7 @@ class ConstantController extends Controller
                 "property_types" => $property_types,
                 "companies" => $companies,
                 "request_types" => $request_types,
+                "settings" => $settings,
             ]
         ], 200);
     }
