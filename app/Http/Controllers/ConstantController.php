@@ -83,6 +83,27 @@ class ConstantController extends Controller
         $service_pricings = ServicePricing::get(['id','service_type_id','property_type_id','company_id','request_type_id', 'area_from', 'area_to','price']);
         
         $settings = Setting::get();
+
+        $banners = BannerAd::with([
+            'banner'
+        ])->get();
+
+        $banners = $banners->map(function ($item) {
+            $data = [];
+
+            $data['id'] = $item->id;
+            $data['title'] = $item->title ?? '-';
+            $data['description'] = $item->description ?? '-';
+            $data['image_url'] = $item->banner ? $item->banner->full_path : null;
+            $data['link'] = $item->link ?? '-';
+            $data['ad_type'] = $item->ad_type ?? '-';
+            $data['start_date'] = $item->start_date ? Carbon::parse($item->start_date)->format('Y-m-d') : null;
+            $data['end_date'] = $item->end_date ? Carbon::parse($item->end_date)->format('Y-m-d') : null;
+            $data['created_at_date'] = $item->created_at ? Carbon::parse($item->created_at)->format('Y-m-d') : null;
+            $data['created_at_time'] = $item->created_at ? Carbon::parse($item->created_at)->format('H:i:s') : null;
+            return $data;
+        });
+
         $data = [
             'payment_methods' => $payment_methods,
             'service_types' => $service_types,
@@ -94,6 +115,7 @@ class ConstantController extends Controller
             'service_pricings' => $service_pricings,
             'document_requirements' => $requiredDocuments,
             'statuses' => $statuses,
+            'banners' => $banners,
             "settings" => $settings,
         ];
 
