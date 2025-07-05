@@ -15,7 +15,7 @@ class PaymentMethodController extends Controller
     public function dataQuery() {
         
         $data = PaymentMethod::with('logo')->get();
-
+        
         $data = $data->map(function ($item) {
             $data = [];
 

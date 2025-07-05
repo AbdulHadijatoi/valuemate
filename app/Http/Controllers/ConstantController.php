@@ -34,8 +34,8 @@ class ConstantController extends Controller
             $data = [];
 
             $data['id'] = $item->id;
-            $data['name'] = $item->title ?? '-';
-            $data['status'] = $item->description ?? '-';
+            $data['name'] = $item->name ?? '-';
+            $data['status'] = $item->status ?? '-';
             $data['image_url'] = $item->logo ? $item->logo->full_path : null;
             return $data;
         });
