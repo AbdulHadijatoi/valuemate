@@ -152,6 +152,10 @@ class ValuationRequestController extends Controller
             'area' => 'required|numeric',
         ]);
 
+        if($r->valuation_request_id){
+            return $this->update($r, $r->valuation_request_id);
+        }
+
         if($r->user_id && !auth()->user()) {
             return response()->json([
                 'status' => false,
