@@ -33,11 +33,10 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('constants', [ConstantController::class, 'getData']);
 Route::post('settings', [ConstantController::class, 'getSettingValue']);
 
-Route::get('checkout', [PaymentController::class, 'createThawaniCheckout']);
 Route::get('success/{payment_reference}', [PaymentController::class, 'success']);
 Route::get('cancel/{payment_reference}', [PaymentController::class, 'cancel']);
 Route::middleware('auth:api')->group(function () {
-
+    Route::post('checkout', [PaymentController::class, 'createThawaniCheckout']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
 
