@@ -28,7 +28,7 @@ class ConstantController extends Controller
         $requestTypes = RequestType::all(); 
         $requiredDocuments = DocumentRequirement::get(['property_type_id', 'service_type_id','document_name', 'id']); 
         $propertyServiceTypes = PropertyServiceType::with(['propertyType', 'serviceType'])->get();
-        $payment_methods = PaymentMethod::with('file')->get();
+        $payment_methods = PaymentMethod::with('logo')->get();
 
         $payment_methods = $payment_methods->map(function ($item) {
             $data = [];
