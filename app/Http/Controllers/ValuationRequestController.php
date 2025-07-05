@@ -152,7 +152,7 @@ class ValuationRequestController extends Controller
             'area' => 'required|numeric',
         ]);
 
-        if($r->valuation_request_id){
+        if($r->valuation_request_id && $r->valuation_request_id != null && $r->valuation_request_id != 0){
             return $this->update($r, $r->valuation_request_id);
         }
 
