@@ -249,7 +249,7 @@ class ValuationRequestController extends Controller
     public function update(Request $r, $id) {
         $r->validate([
             'company_id' => 'required|exists:companies,id',
-            'status_id' => 'required|exists:valuation_request_statuses,id',
+            'status_id' => 'nullable|exists:valuation_request_statuses,id',
             'property_type_id' => 'required|exists:property_types,id',
             'service_type_id' => 'required|exists:service_types,id',
             'request_type_id' => 'required|exists:request_types,id',
