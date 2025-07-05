@@ -28,7 +28,7 @@ class ConstantController extends Controller
         $requestTypes = RequestType::all(); 
         $requiredDocuments = DocumentRequirement::get(['property_type_id', 'service_type_id','document_name', 'id']); 
         $propertyServiceTypes = PropertyServiceType::with(['propertyType', 'serviceType'])->get();
-        $payment_methods = PaymentMethod::with('file')->get([]);
+        $payment_methods = PaymentMethod::with('file')->get();
 
         $payment_methods = $payment_methods->map(function ($item) {
             $data = [];
@@ -39,7 +39,7 @@ class ConstantController extends Controller
             $data['image_url'] = $item->logo ? $item->logo->full_path : null;
             return $data;
         });
-        
+
         $statuses = ValuationRequestStatus::get();
         $propertyServiceTypes = $propertyServiceTypes->groupBy(function ($item) {
             return $item->propertyType->name ?? 'Unknown'; // Group by property type name
