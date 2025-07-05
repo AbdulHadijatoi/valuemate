@@ -14,4 +14,9 @@ class PaymentMethod extends Model
     protected $guarded = [
         // 'name'
     ];
+
+    public function logo()
+    {
+        return $this->belongsTo(File::class, 'file_id');
+    }
 }

@@ -24,13 +24,13 @@ class ChatController extends Controller
     
     public function getData() { 
 
-        $data = Chat::get(['user_id', 'message','status', 'created_at']);
+        $data = Chat::whereNotNull('user_id')->get(['user_id', 'message','status', 'created_at']);
         
         $grouped = $data->groupBy(function ($item) {
-            return $item->propertyType->name ?? 'Unknown'; // Group by property type name
-        })->map(function ($items, $propertyTypeName) {
+            return $item->user_id; // Group by property type name
+        })->map(function ($item) {
             return [
-                'property_type' => $propertyTypeName,
+                'property_type' => $item->user,
                 'property_type_id' => $items->first()->property_type_id,
                 'services' => $items->map(function ($item) {
                     return [

@@ -71,6 +71,7 @@ class DatabaseSeeder extends Seeder
         // Valuation Request Statuses
         DB::table('valuation_request_statuses')->insert([
             ['name' => 'Pending'],
+            ['name' => 'Payment Attempted'],
             ['name' => 'In Progress'],
             ['name' => 'Completed'],
             ['name' => 'Rejected'],

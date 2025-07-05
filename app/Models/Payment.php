@@ -22,4 +22,8 @@ class Payment extends Model
     {
         return $this->belongsTo(ValuationRequest::class);
     }
+
+    public function user(){
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

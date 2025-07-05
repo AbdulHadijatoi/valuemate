@@ -16,6 +16,7 @@ class File extends Model
 
     // append full path to the model
     protected $appends = ['full_path'];
+    
     public function getFullPathAttribute()
     {
         return url(Storage::url($this->path));
