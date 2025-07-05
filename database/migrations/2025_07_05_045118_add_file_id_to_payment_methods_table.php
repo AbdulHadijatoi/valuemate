@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('file_id')
                 ->nullable()
                 ->after('status')
-                ->constrained('payment_methods')
+                ->constrained('files')
                 ->onDelete('cascade');
         });
     }
