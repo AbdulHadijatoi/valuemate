@@ -285,9 +285,8 @@ class ValuationRequestController extends Controller
             $total_amount = $r->total_amount;
         }  
     
-        $data->update([
+        $updateData = [
             "company_id" => $r->company_id,
-            "status_id" => $r->status_id,
             "property_type_id" => $r->property_type_id,
             "service_type_id" => $r->service_type_id,
             "request_type_id" => $r->request_type_id,
@@ -295,7 +294,13 @@ class ValuationRequestController extends Controller
             "service_pricing_id" => $service_pricing_id??null,
             "area" => $r->area,
             "total_amount" => $total_amount,
-        ]);
+        ];
+
+        if($r->status_id){
+            $updateData["status_id"] = $r->status_id;
+        }
+
+        $data->update($data);
     
         return response()->json([
             'status' => true,
