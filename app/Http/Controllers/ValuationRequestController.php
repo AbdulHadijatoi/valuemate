@@ -148,7 +148,7 @@ class ValuationRequestController extends Controller
             'service_type_id' => 'nullable|exists:service_types,id',
             'request_type_id' => 'required|exists:request_types,id',
             'location_id' => 'required|exists:locations,id',
-            'service_pricing_id' => 'nullable|exists:service_pricings,id',
+            // 'service_pricing_id' => 'nullable|exists:service_pricings,id',
             'area' => 'required|numeric',
         ]);
 
@@ -167,21 +167,21 @@ class ValuationRequestController extends Controller
     
         // calculate total amount based on service pricing
         $service_pricing_id = null;
-        if($r->service_pricing_id) {
+        // if($r->service_pricing_id) {
            
-            $servicePricing = ServicePricing::find($r->service_pricing_id);
-            if (!$servicePricing) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Service Pricing not found.'
-                ], 404);
-            }
-            $service_pricing_id = $servicePricing->id;
-            $total_amount = $servicePricing->price;
-        } else {
-            // If no service pricing is provided, set total amount to 0
-            $total_amount = $r->total_amount;
-        }            
+        //     $servicePricing = ServicePricing::find($r->service_pricing_id);
+        //     if (!$servicePricing) {
+        //         return response()->json([
+        //             'status' => false,
+        //             'message' => 'Service Pricing not found.'
+        //         ], 404);
+        //     }
+        //     $service_pricing_id = $servicePricing->id;
+        //     $total_amount = $servicePricing->price;
+        // } else {
+        //     // If no service pricing is provided, set total amount to 0
+        //     $total_amount = $r->total_amount;
+        // }            
 
         $reference = 'VR-' . time() . '-' . $user_id;
 
@@ -192,7 +192,7 @@ class ValuationRequestController extends Controller
             "service_type_id" => $r->service_type_id,
             "request_type_id" => $r->request_type_id,
             "location_id" => $r->location_id,
-            "service_pricing_id" => $service_pricing_id??null,
+            // "service_pricing_id" => $service_pricing_id??null,
             "area" => $r->area,
             "total_amount" => $total_amount,
             "reference" => $reference

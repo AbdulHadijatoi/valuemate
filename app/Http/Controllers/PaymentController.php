@@ -90,7 +90,7 @@ class PaymentController extends Controller
         return $paymentMethod;
     }
 
-    private function errorResponse($message, $status = 200, $extra = [])
+    private function errorResponse($message, $status = 422, $extra = [])
     {
         return response()->json(array_merge([
             'status' => false,
@@ -168,32 +168,20 @@ class PaymentController extends Controller
         try {
             $decryptedRef = decrypt($payment_reference);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Invalid payment reference.',
-            ], 422);
+            return $this->errorResponse('Invalid payment reference.');
         }
 
         $payment = Payment::where('payment_reference', $decryptedRef)->first();
         if (!$payment) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Payment record not found.',
-            ], 422);
+            return $this->errorResponse('Payment record not found.');
         }
 
         if($payment->status == "completed"){
-            return response()->json([
-                'status' => false,
-                'message' => 'Payment already process! please contact support',
-            ], 422);
+            return $this->errorResponse('Payment already process! please contact support');
         }
 
         if(!$payment->thawani_session_id){
-            return response()->json([
-                'status' => false,
-                'message' => 'Payment session not found.',
-            ], 422);
+            return $this->errorResponse('Payment session not found.');
         }
 
         $paymentMethod = $this->getThawaniCredentials();
@@ -220,23 +208,14 @@ class PaymentController extends Controller
                     'status_id' => ValuationRequestStatusConstants::COMPLETED
                 ]);
 
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Payment was successful and verified.'
-                ], 200);
+                return $this->errorResponse('Payment was successful and verified.');
             } else {
-                return response()->json([
-                    'status' => false,
-                    'message' => "Payment failed or incomplete. Status: $status"
-                ], 422);
+                
+                return $this->errorResponse("Payment failed or incomplete. Status: $status");
             }
         }
 
-        return response()->json([
-            'status' => false,
-            'message' => 'Failed to verify payment status from Thawani.',
-            'error' => $sessionResponse->json()
-        ], 422);
+        return $this->errorResponse('Failed to verify payment status from Thawani.');
     }
 
 
@@ -244,27 +223,19 @@ class PaymentController extends Controller
     {
         $payment = Payment::where('payment_reference', decrypt($payment_reference))->first();
         if (!$payment) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Payment was canceled.'
-            ], 422);
+            return $this->errorResponse('Payment was canceled.');
         }
 
         if($payment->status == "completed"){
-            return response()->json([
-                'status' => false,
-                'message' => 'Payment already process! please contact support',
-            ], 422);
+            return $this->errorResponse('Payment already process! please contact support');
         }
 
         $payment->update([
             'status' => 'failed'
         ]);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Payment was canceled.'
-        ], 200);
+        return $this->errorResponse('Payment was canceled.');
+
     }
 
     public static function generateRandomString($length = 10)
@@ -295,6 +266,10 @@ class PaymentController extends Controller
             return response()->json(['status' => true, 'message' => 'Refund issued.']);
         }
 
-        return response()->json(['status' => false, 'message' => 'Refund failed.', 'error' => $response->json()], 422);
+        return response()->json([
+            'status' => false, 
+            'message' => 'Refund failed.', 
+            'error' => $response->json()
+        ], 422);
     }
 }
