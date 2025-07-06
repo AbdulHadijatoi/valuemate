@@ -208,7 +208,10 @@ class PaymentController extends Controller
                     'status_id' => ValuationRequestStatusConstants::COMPLETED
                 ]);
 
-                return $this->errorResponse('Payment was successful and verified.');
+                return response()->json([
+                    "status" => true,
+                    "message" => 'Payment was successful and verified.'
+                ],200);
             } else {
                 
                 return $this->errorResponse("Payment failed or incomplete. Status: $status");

@@ -33,8 +33,23 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('constants', [ConstantController::class, 'getData']);
 Route::post('settings', [ConstantController::class, 'getSettingValue']);
 
+Route::post('success2', function(){
+    return response()->json([
+        "status" => true,
+        "message" => 'Payment was successful and verified.'
+    ],200);
+});
+
+Route::post('cancel2', function(){
+    return response()->json([
+        "status" => false,
+        "message" => 'Payment was canceled.'
+    ],422);
+});
+
 Route::get('success/{payment_reference}', [PaymentController::class, 'success']);
 Route::get('cancel/{payment_reference}', [PaymentController::class, 'cancel']);
+Route::get('checkout-test', [PaymentController::class, 'createThawaniCheckout']);
 Route::middleware('auth:api')->group(function () {
     Route::post('checkout', [PaymentController::class, 'createThawaniCheckout']);
 
