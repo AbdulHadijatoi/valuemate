@@ -300,7 +300,7 @@ class ValuationRequestController extends Controller
             $updateData["status_id"] = $r->status_id;
         }
 
-        $data->update($data);
+        $data->update($updateData);
     
         return response()->json([
             'status' => true,
