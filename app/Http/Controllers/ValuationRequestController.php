@@ -140,6 +140,71 @@ class ValuationRequestController extends Controller
         ], 200);
     }
 
+    // public function store2(Request $r) {
+    //     $r->validate([
+    //         'company_id' => 'required|exists:companies,id',
+    //         'user_id' => 'nullable|exists:users,id',
+    //         'property_type_id' => 'required|exists:property_types,id',
+    //         'service_type_id' => 'nullable|exists:service_types,id',
+    //         'request_type_id' => 'required|exists:request_types,id',
+    //         'location_id' => 'required|exists:locations,id',
+    //         // 'service_pricing_id' => 'nullable|exists:service_pricings,id',
+    //         'area' => 'required|numeric',
+    //     ]);
+
+    //     if($r->valuation_request_id && $r->valuation_request_id != null && $r->valuation_request_id != 0){
+    //         return $this->update($r, $r->valuation_request_id);
+    //     }
+
+    //     if($r->user_id && !auth()->user()) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'You do not have permission to create a valuation request for another user.'
+    //         ], 403);
+    //     }
+
+    //     $user_id = $r->user_id ?? auth()->id();
+    
+    //     // calculate total amount based on service pricing
+    //     $service_pricing_id = null;
+    //     // if($r->service_pricing_id) {
+           
+    //     //     $servicePricing = ServicePricing::find($r->service_pricing_id);
+    //     //     if (!$servicePricing) {
+    //     //         return response()->json([
+    //     //             'status' => false,
+    //     //             'message' => 'Service Pricing not found.'
+    //     //         ], 404);
+    //     //     }
+    //     //     $service_pricing_id = $servicePricing->id;
+    //     //     $total_amount = $servicePricing->price;
+    //     // } else {
+    //     //     // If no service pricing is provided, set total amount to 0
+    //     //     $total_amount = $r->total_amount;
+    //     // }            
+
+    //     $reference = 'VR-' . time() . '-' . $user_id;
+
+    //     $valuation_request = ValuationRequest::create([
+    //         "company_id" => $r->company_id,
+    //         "user_id" => $user_id,
+    //         "property_type_id" => $r->property_type_id,
+    //         "service_type_id" => $r->service_type_id,
+    //         "request_type_id" => $r->request_type_id,
+    //         "location_id" => $r->location_id,
+    //         // "service_pricing_id" => $service_pricing_id??null,
+    //         "area" => $r->area,
+    //         "total_amount" => $total_amount,
+    //         "reference" => $reference
+    //     ]);
+    
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'Valuation Request created.',
+    //         'data' => $valuation_request
+    //     ], 200);
+    // }
+
     public function store(Request $r) {
         $r->validate([
             'company_id' => 'required|exists:companies,id',
@@ -148,7 +213,6 @@ class ValuationRequestController extends Controller
             'service_type_id' => 'nullable|exists:service_types,id',
             'request_type_id' => 'required|exists:request_types,id',
             'location_id' => 'required|exists:locations,id',
-            // 'service_pricing_id' => 'nullable|exists:service_pricings,id',
             'area' => 'required|numeric',
         ]);
 
@@ -164,24 +228,21 @@ class ValuationRequestController extends Controller
         }
 
         $user_id = $r->user_id ?? auth()->id();
-    
-        // calculate total amount based on service pricing
-        $service_pricing_id = null;
-        // if($r->service_pricing_id) {
-           
-        //     $servicePricing = ServicePricing::find($r->service_pricing_id);
-        //     if (!$servicePricing) {
-        //         return response()->json([
-        //             'status' => false,
-        //             'message' => 'Service Pricing not found.'
-        //         ], 404);
-        //     }
-        //     $service_pricing_id = $servicePricing->id;
-        //     $total_amount = $servicePricing->price;
-        // } else {
-        //     // If no service pricing is provided, set total amount to 0
-        //     $total_amount = $r->total_amount;
-        // }            
+
+        // Default amount logic (based on request_type_id)
+        $default_amount = ($r->request_type_id == 2) ? 50 : 25;
+
+        // Try to find a matching service pricing
+        $match = ServicePricing::where('service_type_id', $r->service_type_id)
+            ->where('property_type_id', $r->property_type_id)
+            ->where('company_id', $r->company_id)
+            ->where('request_type_id', $r->request_type_id)
+            ->where('area_from', '<=', $r->area)
+            ->where('area_to', '>=', $r->area)
+            ->first();
+
+        $service_pricing_id = $match ? $match->id : null;
+        $total_amount = $match ? $match->price : $default_amount;
 
         $reference = 'VR-' . time() . '-' . $user_id;
 
@@ -192,16 +253,83 @@ class ValuationRequestController extends Controller
             "service_type_id" => $r->service_type_id,
             "request_type_id" => $r->request_type_id,
             "location_id" => $r->location_id,
-            // "service_pricing_id" => $service_pricing_id??null,
             "area" => $r->area,
             "total_amount" => $total_amount,
-            "reference" => $reference
+            "reference" => $reference,
+            "service_pricing_id" => $service_pricing_id // Save it if needed
         ]);
-    
+
         return response()->json([
             'status' => true,
             'message' => 'Valuation Request created.',
-            'data' => $valuation_request
+            'data' => [
+                'id' => $valuation_request->id,
+                'amount' => $valuation_request->total_amount
+            ]
+        ], 200);
+    }
+
+
+    public function update(Request $r, $id) {
+        $r->validate([
+            'company_id' => 'required|exists:companies,id',
+            'status_id' => 'nullable|exists:valuation_request_statuses,id',
+            'property_type_id' => 'required|exists:property_types,id',
+            'service_type_id' => 'required|exists:service_types,id',
+            'request_type_id' => 'required|exists:request_types,id',
+            'location_id' => 'required|exists:locations,id',
+            'service_pricing_id' => 'nullable|exists:service_pricings,id',
+            'area' => 'required|numeric',
+        ]);
+    
+        $data = ValuationRequest::find($id);
+    
+        if (!$data) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Valuation Request not found.'
+            ], 404);
+        }
+
+        // Default amount logic (based on request_type_id)
+        $default_amount = ($r->request_type_id == 2) ? 50 : 25;
+
+        // Try to find a matching service pricing
+        $match = ServicePricing::where('service_type_id', $r->service_type_id)
+            ->where('property_type_id', $r->property_type_id)
+            ->where('company_id', $r->company_id)
+            ->where('request_type_id', $r->request_type_id)
+            ->where('area_from', '<=', $r->area)
+            ->where('area_to', '>=', $r->area)
+            ->first();
+
+        $service_pricing_id = $match ? $match->id : null;
+        $total_amount = $match ? $match->price : $default_amount;
+    
+        $updateData = [
+            "company_id" => $r->company_id,
+            "property_type_id" => $r->property_type_id,
+            "service_type_id" => $r->service_type_id,
+            "request_type_id" => $r->request_type_id,
+            "location_id" => $r->location_id,
+            "service_pricing_id" => $service_pricing_id??null,
+            "area" => $r->area,
+            "total_amount" => $total_amount,
+        ];
+
+        if($r->status_id){
+            $updateData["status_id"] = $r->status_id;
+        }
+
+        $data->update($updateData);
+    
+        return response()->json([
+            'status' => true,
+            'message' => 'Valuation Request updated.',
+            'data' => [
+                'id' => $data->id,
+                'amount' => $data->total_amount
+            ]
         ], 200);
     }
 
@@ -246,67 +374,7 @@ class ValuationRequestController extends Controller
         ], 200);
     }
 
-    public function update(Request $r, $id) {
-        $r->validate([
-            'company_id' => 'required|exists:companies,id',
-            'status_id' => 'nullable|exists:valuation_request_statuses,id',
-            'property_type_id' => 'required|exists:property_types,id',
-            'service_type_id' => 'required|exists:service_types,id',
-            'request_type_id' => 'required|exists:request_types,id',
-            'location_id' => 'required|exists:locations,id',
-            'service_pricing_id' => 'nullable|exists:service_pricings,id',
-            'area' => 'required|numeric',
-        ]);
     
-        $data = ValuationRequest::find($id);
-    
-        if (!$data) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Valuation Request not found.'
-            ], 404);
-        }
-
-        // calculate total amount based on service pricing
-        $service_pricing_id = null;
-        if($r->service_pricing_id) {
-           
-            $servicePricing = ServicePricing::find($r->service_pricing_id);
-            if (!$servicePricing) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Service Pricing not found.'
-                ], 404);
-            }
-            $service_pricing_id = $servicePricing->id;
-            $total_amount = $servicePricing->price;
-        } else {
-            // If no service pricing is provided, set total amount to 0
-            $total_amount = $r->total_amount;
-        }  
-    
-        $updateData = [
-            "company_id" => $r->company_id,
-            "property_type_id" => $r->property_type_id,
-            "service_type_id" => $r->service_type_id,
-            "request_type_id" => $r->request_type_id,
-            "location_id" => $r->location_id,
-            "service_pricing_id" => $service_pricing_id??null,
-            "area" => $r->area,
-            "total_amount" => $total_amount,
-        ];
-
-        if($r->status_id){
-            $updateData["status_id"] = $r->status_id;
-        }
-
-        $data->update($updateData);
-    
-        return response()->json([
-            'status' => true,
-            'message' => 'Valuation Request updated.'
-        ], 200);
-    }
 
     public function delete($id) {
         $data = ValuationRequest::find($id);
