@@ -88,6 +88,6 @@ class ValuationRequest extends Model
     
     public function lastPayment()
     {
-        return $this->hasOne(Payment::class, 'valuation_request_id')->lastest('id');
+        return $this->hasOne(Payment::class, 'valuation_request_id')->latest('id');
     }
 }
