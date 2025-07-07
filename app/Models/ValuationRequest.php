@@ -80,4 +80,14 @@ class ValuationRequest extends Model
     {
         return $this->hasMany(ValuationRequestDocument::class, 'valuation_request_id');
     }
+    
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'valuation_request_id')->orderBy('id','desc');
+    }
+    
+    public function lastPayment()
+    {
+        return $this->hasOne(Payment::class, 'valuation_request_id')->lastest('id');
+    }
 }

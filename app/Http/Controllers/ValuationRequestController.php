@@ -359,7 +359,8 @@ class ValuationRequestController extends Controller
                     'requestType',
                     'location',
                     'servicePricing',
-                    'status'
+                    'status',
+                    'lastPayment'
                 ])
                 ->where('user_id', Auth::id())
                 ->get();
@@ -380,6 +381,7 @@ class ValuationRequestController extends Controller
             $data['reference'] = $item->reference ?? '-';
             $data['created_at_date'] = $item->created_at ? Carbon::parse($item->created_at)->format('Y-m-d') : null;
             $data['created_at_time'] = $item->created_at ? Carbon::parse($item->created_at)->format('H:i:s') : null;
+            $data['payment_status'] = $item->lastPayment ? $item->lastPayment->status: null;
 
             $data['has_documents'] = $item->documents ->count() > 0 ? true : false;
             $requiredDocs = DocumentRequirement::where('property_type_id', $item->property_type_id)
