@@ -60,6 +60,8 @@ Route::middleware('auth:api')->group(function () {
         Route::post('send-message', [ChatController::class, 'sendUserMessage']);
     });
 
+    
+    Route::post('request-history', [ValuationRequestController::class, 'requestHistory']);
     Route::post('create-valuation-request', [ValuationRequestController::class, 'store']);
     Route::post('upload-valuation-documents', [ValuationRequestController::class, 'uploadDocuments']);
 

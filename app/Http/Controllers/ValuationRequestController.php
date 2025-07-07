@@ -12,6 +12,7 @@ use App\Models\Setting;
 use App\Models\ValuationRequest;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ValuationRequestController extends Controller
@@ -347,6 +348,51 @@ class ValuationRequestController extends Controller
             'status' => true,
             'data' => $data
         ], 200);
+    }
+    
+    public function requestHistory() {
+        $data = ValuationRequest::with([
+                    'company',
+                    'user',
+                    'propertyType',
+                    'serviceType',
+                    'requestType',
+                    'location',
+                    'servicePricing',
+                    'status'
+                ])
+                ->where('user_id', Auth::id())
+                ->get();
+
+        $data = $data->map(function ($item){
+            $data = [];
+            $data['id'] = $item->id;
+            $data['company_name'] = $item->company ? $item->company->name : '-';
+            $data['user_name'] = $item->user ? $item->user->first_name .' '. $item->user->last_name : '-';
+            $data['property_type'] = $item->propertyType ? $item->propertyType->name : '-';
+            $data['service_type'] = $item->serviceType ? $item->serviceType->name : '-';
+            $data['request_type'] = $item->requestType ? $item->requestType->name : '-';
+            $data['location'] = $item->location ? $item->location->name : '-';
+            $data['service_pricing'] = $item->servicePricing ? $item->servicePricing->price : 'default';
+            $data['area'] = $item->area ?? '-';
+            $data['total_amount'] = $item->total_amount ?? '-';
+            $data['status'] = $item->status ? $item->status->name : '-';
+            $data['reference'] = $item->reference ?? '-';
+            $data['created_at_date'] = $item->created_at ? Carbon::parse($item->created_at)->format('Y-m-d') : null;
+            $data['created_at_time'] = $item->created_at ? Carbon::parse($item->created_at)->format('H:i:s') : null;
+
+            $data['has_documents'] = $item->documents ->count() > 0 ? true : false;
+            $requiredDocs = DocumentRequirement::where('property_type_id', $item->property_type_id)
+                ->where('service_type_id', $item->service_type_id)
+                ->get(['id', 'document_name']);
+            $data['required_documents'] = $requiredDocs && $requiredDocs->count() > 0? $requiredDocs :null;
+            return $data;
+        });
+
+        return [
+            'status' => true,
+            'data' => $data,
+        ];
     }
 
     public function updateStatus(Request $r) {
