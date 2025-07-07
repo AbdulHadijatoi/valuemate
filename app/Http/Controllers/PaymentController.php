@@ -205,7 +205,7 @@ class PaymentController extends Controller
 
             if ($status === 'paid') {
                 $payment->valuationRequest->update([
-                    'status_id' => ValuationRequestStatusConstants::COMPLETED
+                    'status_id' => ValuationRequestStatusConstants::CONFIRMED
                 ]);
 
                 return response()->json([

@@ -23,6 +23,8 @@ class ValuationRequestStatusSeeder extends Seeder
             ['name' => 'In Progress'],
             ['name' => 'Completed'],
             ['name' => 'Rejected'],
+            ['name' => 'Confirmed'],
+            ['name' => 'Under Review'],
         ]);
     }
 

@@ -9,4 +9,6 @@ class ValuationRequestStatusConstants
     const IN_PROGRESS = 3;
     const COMPLETED = 4;
     const REJECTED = 5;
+    const CONFIRMED = 6;
+    const UNDER_REVIEW = 7;
 }
