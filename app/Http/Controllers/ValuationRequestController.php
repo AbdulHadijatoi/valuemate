@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\ExportData;
+use App\Mail\StatusUpdatedMail;
 use App\Models\DocumentRequirement;
 use App\Models\File;
 use App\Models\PropertyServiceType;
@@ -13,6 +14,7 @@ use App\Models\ValuationRequest;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ValuationRequestController extends Controller
@@ -410,6 +412,20 @@ class ValuationRequestController extends Controller
         $valuationRequest->update([
             'status_id' => $r->status_id
         ]);
+
+        if ($valuationRequest->user && $valuationRequest->user->email) {
+            $data = [
+                'user_name' => $valuationRequest->user->first_name . ' ' . $valuationRequest->user->last_name,
+                'reference' => $valuationRequest->reference,
+                'status' => optional($valuationRequest->status)->name ?? '-',
+                'property_type' => optional($valuationRequest->propertyType)->name ?? '-',
+                'location' => optional($valuationRequest->location)->name ?? '-',
+                'created_at_date' => $valuationRequest->created_at ? Carbon::parse($valuationRequest->created_at)->format('Y-m-d') : null,
+                'created_at_time' => $valuationRequest->created_at ? Carbon::parse($valuationRequest->created_at)->format('H:i:s') : null,
+            ];
+
+            Mail::to($valuationRequest->user->email)->send(new StatusUpdatedMail($data));
+        }
     
         return response()->json([
             'status' => true,

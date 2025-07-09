@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Constants\ValuationRequestStatusConstants;
+use App\Mail\PaymentSuccessMail;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
 use App\Models\User;
@@ -11,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class PaymentController extends Controller
 {
@@ -207,6 +209,43 @@ class PaymentController extends Controller
                 $payment->valuationRequest->update([
                     'status_id' => ValuationRequestStatusConstants::CONFIRMED
                 ]);
+
+                // Prepare Email Data
+                $valuationRequest = $payment->valuationRequest()->with([
+                    'company',
+                    'user',
+                    'propertyType',
+                    'serviceType',
+                    'requestType',
+                    'location',
+                    'servicePricing',
+                    'status',
+                    'lastPayment'
+                ])->first();
+
+                $emailData = [
+                    'id' => $valuationRequest->id,
+                    'company_name' => optional($valuationRequest->company)->name ?? '-',
+                    'user_name' => optional($valuationRequest->user)->first_name . ' ' . optional($valuationRequest->user)->last_name,
+                    'property_type' => optional($valuationRequest->propertyType)->name ?? '-',
+                    'service_type' => optional($valuationRequest->serviceType)->name ?? '-',
+                    'request_type' => optional($valuationRequest->requestType)->name ?? '-',
+                    'location' => optional($valuationRequest->location)->name ?? '-',
+                    'service_pricing' => optional($valuationRequest->servicePricing)->price ?? 'default',
+                    'area' => $valuationRequest->area ?? '-',
+                    'total_amount' => $valuationRequest->total_amount ?? '-',
+                    'status' => optional($valuationRequest->status)->name ?? '-',
+                    'reference' => $valuationRequest->reference ?? '-',
+                    'created_at_date' => $valuationRequest->created_at ? \Carbon\Carbon::parse($valuationRequest->created_at)->format('Y-m-d') : null,
+                    'created_at_time' => $valuationRequest->created_at ? \Carbon\Carbon::parse($valuationRequest->created_at)->format('H:i:s') : null,
+                    'payment_status' => optional($valuationRequest->lastPayment)->status ?? null,
+                ];
+
+                // Send Email
+                if ($valuationRequest->user && $valuationRequest->user->email) {
+                    Mail::to($valuationRequest->user->email)->send(new PaymentSuccessMail($emailData));
+                }
+
 
                 return response()->json([
                     "status" => true,
