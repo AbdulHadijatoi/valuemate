@@ -4,6 +4,8 @@ use App\Http\Controllers\ServiceTypeController;
 use App\Mail\PaymentSuccessMail;
 use App\Mail\StatusUpdatedMail;
 use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
@@ -12,42 +14,68 @@ Route::get('/', function () {
 });
 
 
-Route::get('test', [ServiceTypeController::class, 'getData'])->name('service_type.get_data');
+// Route::get('test', [ServiceTypeController::class, 'getData'])->name('service_type.get_data');
 
-Route::get('/test-emails', function () {
-    $user = User::first();
+// Route::get('/ttt', function () {
+//     $valuationRequest = \App\Models\ValuationRequest::with([
+//         'company.companyDetails',
+//         'user',
+//         'propertyType',
+//         'serviceType',
+//         'requestType',
+//         'location',
+//         'servicePricing',
+//         'status',
+//         'lastPayment'
+//     ])->find(1);
 
-    $mockData = [
-        'id' => 1,
-        'company_name' => 'Demo Company',
-        'user_name' => $user->first_name . ' ' . $user->last_name,
-        'property_type' => 'Apartment',
-        'service_type' => 'Valuation',
-        'request_type' => 'Urgent',
-        'location' => 'Muscat',
-        'service_pricing' => '100',
-        'area' => '120 sqm',
-        'total_amount' => '100 OMR',
-        'status' => 'Confirmed',
-        'reference' => 'REF123456',
-        'created_at_date' => now()->format('Y-m-d'),
-        'created_at_time' => now()->format('H:i:s'),
-        'payment_status' => 'completed',
-    ];
+//     if (!$valuationRequest) {
+//         return 'ValuationRequest not found.';
+//     }
 
-    $statusData = [
-        'user_name' => $user->first_name . ' ' . $user->last_name,
-        'reference' => 'REF123456',
-        'status' => 'In Progress',
-        'property_type' => 'Apartment',
-        'location' => 'Muscat',
-        'created_at_date' => now()->format('Y-m-d'),
-        'created_at_time' => now()->format('H:i:s'),
-    ];
+//     $emailData = [
+//         'id' => $valuationRequest->id,
+//         'company_name' => optional($valuationRequest->company)->name ?? '-',
+//         'user_name' => optional($valuationRequest->user)->first_name . ' ' . optional($valuationRequest->user)->last_name,
+//         'property_type' => optional($valuationRequest->propertyType)->name ?? '-',
+//         'service_type' => optional($valuationRequest->serviceType)->name ?? '-',
+//         'request_type' => optional($valuationRequest->requestType)->name ?? '-',
+//         'location' => optional($valuationRequest->location)->name ?? '-',
+//         'service_pricing' => optional($valuationRequest->servicePricing)->price ?? 'default',
+//         'area' => $valuationRequest->area ?? '-',
+//         'total_amount' => $valuationRequest->total_amount ?? '-',
+//         'status' => optional($valuationRequest->status)->name ?? '-',
+//         'reference' => $valuationRequest->reference ?? '-',
+//         'created_at_date' => $valuationRequest->created_at ? Carbon::parse($valuationRequest->created_at)->format('Y-m-d') : null,
+//         'created_at_time' => $valuationRequest->created_at ? Carbon::parse($valuationRequest->created_at)->format('H:i:s') : null,
+//         'payment_status' => optional($valuationRequest->lastPayment)->status ?? null,
+//     ];
 
-    // Send both emails to your email address
-    Mail::to($user->email)->send(new PaymentSuccessMail($mockData));
-    Mail::to($user->email)->send(new StatusUpdatedMail($statusData));
+//     try {
+//         if ($valuationRequest->user && $valuationRequest->user->email) {
+//             Mail::to($valuationRequest->user->email)->send(new PaymentSuccessMail($emailData, 'user'));
+//         }
+//     } catch (Exception $e) {
+//         Log::error('Failed to send email to user: ' . $e->getMessage());
+//     }
 
-    return 'Test emails sent to ' . $user->email;
-});
+//     try {
+//         $company_email = optional(optional($valuationRequest->company)->companyDetails)->email;
+//         if ($company_email) {
+//             Mail::to($company_email)->send(new PaymentSuccessMail($emailData, 'company'));
+//         }
+//     } catch (Exception $e) {
+//         Log::error('Failed to send email to company: ' . $e->getMessage());
+//     }
+
+//     try {
+//         $admin_email = \App\Models\Setting::getValue('admin_email');
+//         if ($admin_email) {
+//             Mail::to($admin_email)->send(new PaymentSuccessMail($emailData, 'admin'));
+//         }
+//     } catch (Exception $e) {
+//         Log::error('Failed to send email to admin: ' . $e->getMessage());
+//     }
+
+//     return 'Test emails sent to user, company, and admin (if emails exist).';
+// });

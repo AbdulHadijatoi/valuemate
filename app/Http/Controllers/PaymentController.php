@@ -6,8 +6,10 @@ use App\Constants\ValuationRequestStatusConstants;
 use App\Mail\PaymentSuccessMail;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
+use App\Models\Setting;
 use App\Models\User;
 use App\Models\ValuationRequest;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -241,9 +243,31 @@ class PaymentController extends Controller
                     'payment_status' => optional($valuationRequest->lastPayment)->status ?? null,
                 ];
 
-                // Send Email
-                if ($valuationRequest->user && $valuationRequest->user->email) {
-                    Mail::to($valuationRequest->user->email)->send(new PaymentSuccessMail($emailData));
+                try {
+                    if ($valuationRequest->user && $valuationRequest->user->email) {
+                        Mail::to($valuationRequest->user->email)->send(new PaymentSuccessMail($emailData, 'user'));
+                    }
+                } catch (Exception $e) {
+                    Log::error('Failed to send email to user: ' . $e->getMessage());
+                }
+
+                $company_email = $valuationRequest->company->companyDetails->email ?? null;
+                
+                if ($company_email) {
+                    try {
+                        Mail::to($company_email)->send(new PaymentSuccessMail($emailData, 'company'));
+                    } catch (Exception $e) {
+                        Log::error('Failed to send email to company: ' . $e->getMessage());
+                    }
+                }
+
+                $admin_email = Setting::getValue('admin_email');
+                if ($admin_email) {
+                    try {
+                        Mail::to($admin_email)->send(new PaymentSuccessMail($emailData, 'admin'));
+                    } catch (Exception $e) {
+                        Log::error('Failed to send email to admin: ' . $e->getMessage());
+                    }
                 }
 
 

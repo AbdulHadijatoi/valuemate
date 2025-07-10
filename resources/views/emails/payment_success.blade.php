@@ -3,9 +3,16 @@
 @section('content')
     <h2 style="color: #2d3748;">Payment Confirmation</h2>
 
-    <p style="color: #4a5568;">Dear {{ $data['user_name'] }},</p>
-
-    <p style="color: #4a5568;">Thank you for your payment. Here are your order details:</p>
+    @if($recipientType === 'user')
+        <p style="color: #4a5568;">Dear {{ $data['user_name'] }},</p>
+        <p style="color: #4a5568;">Thank you for your payment. Here are your order details:</p>
+    @elseif($recipientType === 'company')
+        <p style="color: #4a5568;">Hello {{ $data['company_name'] }},</p>
+        <p style="color: #4a5568;">A new payment has been completed for a valuation request placed by {{ $data['user_name'] }}.</p>
+    @elseif($recipientType === 'admin')
+        <p style="color: #4a5568;">Hello Admin,</p>
+        <p style="color: #4a5568;">A new payment has been successfully processed.</p>
+    @endif
 
     <table cellpadding="0" cellspacing="0" width="100%" style="margin-top: 15px;">
         <tbody>
