@@ -27,7 +27,8 @@ class ValuationRequestController extends Controller
         ->when($request->from_date && $request->to_date, function ($query) use ($request) {
             return $query->whereDate('created_at','>=', $request->from_date)
                         ->whereDate('created_at','<=', $request->to_date);
-        });
+        })
+        ->orderBy('id', 'desc');
 
         if ($export) {
             $data = $data->get();
@@ -366,6 +367,7 @@ class ValuationRequestController extends Controller
                 ])
                 ->whereHas('payments')
                 ->where('user_id', Auth::id())
+                ->orderBy('id', 'desc')
                 ->get();
 
         $data = $data->map(function ($item){
