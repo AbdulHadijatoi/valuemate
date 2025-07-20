@@ -382,6 +382,7 @@ class ValuationRequestController extends Controller
             $data['service_pricing'] = $item->servicePricing ? $item->servicePricing->price : 'default';
             $data['area'] = $item->area ?? '-';
             $data['total_amount'] = $item->total_amount ?? '-';
+            $data['status_id'] = $item->status_id;
             $data['status'] = $item->status ? $item->status->name : '-';
             $data['reference'] = $item->reference ?? '-';
             $data['created_at_date'] = $item->created_at ? Carbon::parse($item->created_at)->format('Y-m-d') : null;
