@@ -369,11 +369,12 @@ class ValuationRequestController extends Controller
                 ->where('user_id', Auth::id())
                 ->orderBy('id', 'desc')
                 ->get();
-
         $data = $data->map(function ($item){
+            $company = $item->company;
             $data = [];
             $data['id'] = $item->id;
             $data['company_name'] = $item->company ? $item->company->name : '-';
+            $data['company_logo'] = $company->logo ? $company->logo->full_path : url(Setting::getValue('placeholder-image'));
             $data['user_name'] = $item->user ? $item->user->first_name .' '. $item->user->last_name : '-';
             $data['property_type'] = $item->propertyType ? $item->propertyType->name : '-';
             $data['service_type'] = $item->serviceType ? $item->serviceType->name : '-';
