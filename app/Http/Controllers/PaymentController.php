@@ -110,6 +110,7 @@ class PaymentController extends Controller
             "valuation_request_id" => $valuationRequest->id,
             "amount" => $valuationRequest->total_amount,
             "status" => 'pending',
+            "user_id" => auth()->id(),
             "payment_reference" => $randomString,
         ]);
     }
@@ -154,9 +155,9 @@ class PaymentController extends Controller
             'customer_id' => $customerId,
             'products' => [
                 [
-                    'name' => 'Valuation Service',
+                    'name' => 'Valuation Request',
                     'quantity' => 1,
-                    'unit_amount' => intval($amount * 100), // Baisa
+                    'unit_amount' => intval($amount * 1000), // Baisa
                 ]
             ],
             'success_url' => url('api/success/' . encrypt($payment->payment_reference)),
