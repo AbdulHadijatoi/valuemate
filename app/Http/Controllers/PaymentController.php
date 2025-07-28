@@ -22,7 +22,23 @@ class PaymentController extends Controller
     public function getData() { 
 
         $data = Payment::get();
-                    
+
+        $data = $data->map(function($item, $index) {
+            $data = [];
+            $data['index'] = $index + 1;
+            $data['id'] = $item->id;
+            $data['payment_method'] = $item->paymentMethod ? $item->paymentMethod->name : null;
+            $data['valuation_request_id'] = $item->valuation_request_id;
+            $data['amount'] = $item->amount;
+            $data['status'] = $item->status;
+            $data['payment_reference'] = $item->payment_reference;
+            $data['user'] = $item->user ? $item->user->name : null;
+            $data['thawani_payment_id'] = $item->thawani_payment_id;
+            $data['thawani_session_id'] = $item->thawani_session_id;
+            $data['created_at'] = optional($item->created_at)->format('Y-m-d H:i:s');
+            return $data;
+        });
+        
         return response()->json([
             'status' => true,
             'message' => 'Data retrieved',

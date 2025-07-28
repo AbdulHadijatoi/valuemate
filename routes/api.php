@@ -9,6 +9,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ConstantController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentRequirementController;
+use App\Http\Controllers\GuidelineController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NotificationController;
@@ -50,6 +51,10 @@ Route::post('cancel2', function(){
 Route::get('success/{payment_reference}', [PaymentController::class, 'success']);
 Route::get('cancel/{payment_reference}', [PaymentController::class, 'cancel']);
 Route::get('checkout-test', [PaymentController::class, 'createThawaniCheckout']);
+
+Route::post('terms', [GuidelineController::class, 'getTerms']);
+Route::post('policy', [GuidelineController::class, 'getPrivacyPolicy']);
+
 Route::middleware('auth:api')->group(function () {
     Route::post('checkout', [PaymentController::class, 'createThawaniCheckout']);
 
@@ -183,6 +188,14 @@ Route::middleware('auth:api')->group(function () {
             Route::post('update/{id}', [ValuationRequestController::class, 'update']);
             Route::post('update-status', [ValuationRequestController::class, 'updateStatus']);
             Route::post('delete/{id}', [ValuationRequestController::class, 'delete']);
+        });
+
+        Route::group(['prefix' => 'guidelines', 'middleware'=>'permission:manage guidelines'], function () {
+            Route::post('/', [GuidelineController::class, 'getData']);
+            Route::get('terms', [GuidelineController::class, 'getTerms']);
+            Route::get('privacy-policy', [GuidelineController::class, 'getPrivacyPolicy']);
+            Route::post('store', [GuidelineController::class, 'storeGuideline']);
+            Route::post('update/{id}', [GuidelineController::class, 'updateGuideline']);
         });
         
         Route::group(['prefix' => 'payments', 'middleware'=>'permission:manage payments'], function () {
