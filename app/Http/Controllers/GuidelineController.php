@@ -31,21 +31,27 @@ class GuidelineController extends Controller
 
     public function getTerms() {
         $type = 'terms_of_service';
-        $guidelines = Guideline::where('type', $type)->first();
+        $guidelines = Guideline::where('type', $type)->first(['title','description']);
 
         return response()->json([
             'status' => true,
-            'data' => $guidelines
+            'data' => [
+                'title' => $guidelines->title,
+                'content' => $guidelines->description
+            ]
         ], 200);
     }
 
     public function getPrivacyPolicy() {
         $type = 'privacy_policy';
-        $guidelines = Guideline::where('type', $type)->first();
+        $guidelines = Guideline::where('type', $type)->first(['title','description']);
 
         return response()->json([
             'status' => true,
-            'data' => $guidelines
+            'data' => [
+                'title' => $guidelines->title,
+                'content' => $guidelines->description
+            ]
         ], 200);
     }
 
