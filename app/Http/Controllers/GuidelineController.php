@@ -42,14 +42,14 @@ class GuidelineController extends Controller
         ], 200);
     }
 
-    public function getPrivacyPolicy() {
+    public function showPrivacyPolicy() {
         $type = 'privacy_policy';
         $guidelines = Guideline::where('type', $type)->first(['title','description']);
 
         return view('privacy-policy', compact('guidelines'));
     }
     
-    public function showPrivacyPolicy() {
+    public function getPrivacyPolicy() {
         $type = 'privacy_policy';
         $guidelines = Guideline::where('type', $type)->first(['title','description']);
 
