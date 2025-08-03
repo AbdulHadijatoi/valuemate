@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GuidelineController;
 use App\Http\Controllers\ServiceTypeController;
 use App\Mail\PaymentSuccessMail;
 use App\Mail\StatusUpdatedMail;
@@ -14,7 +15,7 @@ Route::get('/', function () {
 });
 
 
-// Route::get('test', [ServiceTypeController::class, 'getData'])->name('service_type.get_data');
+Route::get('privacy-policy', [GuidelineController::class, 'showPrivacyPolicy'])->name('service_type.get_data');
 
 // Route::get('/ttt', function () {
 //     $valuationRequest = \App\Models\ValuationRequest::with([
