@@ -46,6 +46,13 @@ class GuidelineController extends Controller
         $type = 'privacy_policy';
         $guidelines = Guideline::where('type', $type)->first(['title','description']);
 
+        return view('privacy-policy', compact('guidelines'));
+    }
+    
+    public function showPrivacyPolicy() {
+        $type = 'privacy_policy';
+        $guidelines = Guideline::where('type', $type)->first(['title','description']);
+
         return response()->json([
             'status' => true,
             'data' => [
