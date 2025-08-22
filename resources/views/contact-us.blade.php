@@ -346,8 +346,7 @@
     <header>
         <nav>
             <a href="/" class="logo">
-                <i class="fas fa-home"></i>
-                ValuMate
+                <img src="{{asset('svg/logo.svg')}}" alt="ValuMate Logo" style="height: 50px; margin-left: 10px;">
             </a>
             <ul class="nav-links" id="nav-links">
                 <li><a href="/">Home</a></li>
