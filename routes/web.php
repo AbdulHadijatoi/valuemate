@@ -16,6 +16,9 @@ Route::get('/', function () {
 
 
 Route::get('privacy-policy', [GuidelineController::class, 'showPrivacyPolicy'])->name('service_type.get_data');
+Route::get('support', function(){
+    return view('contact-us');
+});
 
 // Route::get('/ttt', function () {
 //     $valuationRequest = \App\Models\ValuationRequest::with([
