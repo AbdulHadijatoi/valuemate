@@ -27,8 +27,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
 
 Route::post('constants', [ConstantController::class, 'getData']);
@@ -55,7 +55,7 @@ Route::get('checkout-test', [PaymentController::class, 'createThawaniCheckout'])
 Route::post('terms', [GuidelineController::class, 'getTerms']);
 Route::post('policy', [GuidelineController::class, 'getPrivacyPolicy']);
 
-Route::middleware('auth:api')->group(function () {
+Route::middleware(['auth:api', 'throttle:60,1'])->group(function () {
     Route::post('checkout', [PaymentController::class, 'createThawaniCheckout']);
 
     Route::post('/logout', [AuthController::class, 'logout']);

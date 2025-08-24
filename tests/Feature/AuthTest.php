@@ -40,14 +40,15 @@ class AuthTest extends TestCase
     public function user_can_register()
     {
         $response = $this->postJson('/api/register', [
-            'name' => 'John Doe',
+            'first_name' => 'John',
+            'last_name' => 'Doe',
             'email' => 'john@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',
         ]);
 
         $response->assertStatus(200)
-                 ->assertJsonStructure(['token', 'user' => ['id', 'name', 'email']]);
+                 ->assertJsonStructure(['status', 'message', 'data' => ['token', 'user']]);
 
         $this->assertDatabaseHas('users', ['email' => 'john@example.com']);
     }
@@ -56,7 +57,8 @@ class AuthTest extends TestCase
     public function user_cannot_register_with_invalid_data()
     {
         $response = $this->postJson('/api/register', [
-            'name' => '',
+            'first_name' => '',
+            'last_name' => '',
             'email' => 'invalid-email',
             'password' => '123',
             'password_confirmation' => '321',
@@ -69,6 +71,9 @@ class AuthTest extends TestCase
     public function user_can_login_with_correct_credentials()
     {
         $user = User::factory()->create([
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'email' => 'john@example.com',
             'password' => bcrypt('password123'),
         ]);
 
@@ -78,13 +83,16 @@ class AuthTest extends TestCase
         ]);
 
         $response->assertStatus(200)
-                 ->assertJsonStructure(['token', 'user']);
+                 ->assertJsonStructure(['status', 'message', 'data' => ['user', 'token', 'placeholder_image']]);
     }
 
     #[Test]
     public function user_cannot_login_with_wrong_credentials()
     {
         $user = User::factory()->create([
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'email' => 'john@example.com',
             'password' => bcrypt('correct-password'),
         ]);
 
@@ -95,5 +103,33 @@ class AuthTest extends TestCase
 
         $response->assertStatus(401)
                  ->assertJson(['message' => 'Invalid credentials']);
+    }
+
+    #[Test]
+    public function user_can_logout()
+    {
+        $user = User::factory()->create([
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'email' => 'john@example.com',
+            'password' => bcrypt('password123'),
+        ]);
+
+        $token = $user->createToken('API Token')->accessToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->postJson('/api/logout');
+
+        $response->assertStatus(200)
+                 ->assertJson(['status' => true, 'message' => 'Logged out successfully']);
+    }
+
+    #[Test]
+    public function user_cannot_access_protected_routes_without_token()
+    {
+        $response = $this->postJson('/api/logout');
+
+        $response->assertStatus(401);
     }
 }
