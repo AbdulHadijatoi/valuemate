@@ -60,6 +60,11 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
 
+    Route::group(['prefix' => 'users'], function () {
+        Route::post('update/{id}', [UserController::class, 'update']);
+        Route::post('delete/{id}', [UserController::class, 'delete']);
+    });
+
     Route::group(['prefix' => 'chats'], function () {
         Route::get('/', [ChatController::class, 'index']);
         Route::post('send-message', [ChatController::class, 'sendUserMessage']);
