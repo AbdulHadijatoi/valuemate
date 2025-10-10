@@ -9,9 +9,7 @@ class DocumentRequirement extends Model
 {
     use HasFactory;
 
-    protected $guarded = [
-        // 'property_type_id', 'document_name'
-    ];
+    protected $guarded = [];
 
     public function propertyType()
     {
