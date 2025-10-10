@@ -25,6 +25,7 @@ class DocumentRequirementController extends Controller
             $data['service_type_id']= $item->service_type_id;
             $data['property_type_name']= $item->propertyType? $item->propertyType->name: null;
             $data['service_type_name']= $item->serviceType? $item->serviceType->name: null;
+            $data['is_file']= $item->is_file;
             $data['created_at_date'] = $item->created_at ? Carbon::parse($item->created_at)->format("Y-m-d") : null;
             $data['created_at_time'] = $item->created_at ? Carbon::parse($item->created_at)->format("H:i:s") : null;
             return $data;
@@ -41,13 +42,15 @@ class DocumentRequirementController extends Controller
         $r->validate([
             'property_type_id' => 'required|exists:property_types,id',
             'service_type_id' => 'required|exists:service_types,id',
-            'document_name' => 'required'
+            'document_name' => 'required',
+            'is_file' => 'nullable'
         ]);
     
         DocumentRequirement::create([
             'property_type_id' => $r->property_type_id,
             'service_type_id' => $r->service_type_id,
             'document_name' => $r->document_name,
+            'is_file' => $r->is_file,
         ]);
     
         return response()->json([
@@ -58,7 +61,8 @@ class DocumentRequirementController extends Controller
 
     public function update(Request $r, $id) {
         $r->validate([
-            'document_name' => 'required'
+            'document_name' => 'required',
+            'is_file' => 'nullable'
         ]);
     
         $data = DocumentRequirement::find($id);
@@ -72,6 +76,7 @@ class DocumentRequirementController extends Controller
     
         $data->update([
             'document_name' => $r->document_name,
+            'is_file' => $r->is_file
         ]);
     
         return response()->json([
