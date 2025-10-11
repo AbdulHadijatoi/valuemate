@@ -26,7 +26,7 @@ class ConstantController extends Controller
         $locations = Location::all(); 
         $propertyTypes = PropertyType::all(); 
         $requestTypes = RequestType::all(); 
-        $requiredDocuments = DocumentRequirement::get(['property_type_id', 'service_type_id','document_name', 'id']); 
+        $requiredDocuments = DocumentRequirement::get(['property_type_id', 'service_type_id','document_name', 'is_file', 'id']); 
         $propertyServiceTypes = PropertyServiceType::with(['propertyType', 'serviceType'])->get();
         $payment_methods = PaymentMethod::with('logo')->get();
 

@@ -61,7 +61,7 @@ class ValuationRequestController extends Controller
                 $data['has_documents'] = $item->documents ->count() > 0 ? true : false;
                 $requiredDocs = DocumentRequirement::where('property_type_id', $item->property_type_id)
                     ->where('service_type_id', $item->service_type_id)
-                    ->get(['id', 'document_name']);
+                    ->get(['id', 'document_name', 'is_file']);
                 $data['required_documents'] = $requiredDocs && $requiredDocs->count() > 0? $requiredDocs :null;
             }
             return $data;
@@ -135,7 +135,9 @@ class ValuationRequestController extends Controller
             return [
                 'id' => $document->id,
                 'document_name' => $document->documentRequirement ?$document->documentRequirement->document_name:null,
+                'is_file' => $document->documentRequirement ? $document->documentRequirement->is_file : null,
                 'full_path' => $document->document ? $document->document->full_path : null,
+                'text_value' => $document->text_value
             ];
         });
         return response()->json([
@@ -458,12 +460,14 @@ class ValuationRequestController extends Controller
     }
 
     public function uploadDocuments(Request $r) {
+        // dd($r->all());
         $r->validate([
             'valuation_request_id' => 'required|exists:valuation_requests,id',
             'document_requirement_id' => 'required|array',
             'document_requirement_id.*' => 'required|exists:document_requirements,id',
-            'document_file' => 'required|array',
-            'document_file.*' => 'file',
+            'document_file' => 'nullable|array',
+            'document_file.*' => 'nullable|file',
+            'document_text_value' => 'nullable|array',
         ]);
     
 
@@ -476,20 +480,52 @@ class ValuationRequestController extends Controller
             ], 404);
         }
     
-        foreach ($r->file('document_file') as $index => $fileInput) {
-            $requirementId = $r->document_requirement_id[$index] ?? null;
-    
+        // Normalize inputs
+        $requirementIds = is_array($r->document_requirement_id) ? $r->document_requirement_id : [];
+        $files = $r->file('document_file') ?: [];
+        $texts = is_array($r->document_text_value) ? $r->document_text_value : [];
+
+        foreach ($requirementIds as $index => $requirementId) {
             if (!$requirementId) {
-                continue; // skip if no matching requirement
+                continue;
             }
-    
-            $file = new File();
-            $file_path = $file->saveFile($fileInput);
-    
-            $valuationRequest->documents()->create([
-                'document_requirement_id' => $requirementId,
-                'file_id' => $file->id,
-            ]);
+
+            // Load requirement to know if it expects a file or text
+            $requirement = DocumentRequirement::find($requirementId);
+            if (!$requirement) {
+                continue;
+            }
+
+            // If requirement expects a file, look for an uploaded file at same index
+            if ($requirement->is_file) {
+                $fileInput = $files[$index] ?? null;
+                if (!$fileInput) {
+                    // no file provided for this requirement, skip
+                    continue;
+                }
+
+                $file = new File();
+                $file_path = $file->saveFile($fileInput);
+
+                $valuationRequest->documents()->create([
+                    'document_requirement_id' => $requirementId,
+                    'file_id' => $file->id,
+                    'text_value' => null,
+                ]);
+            } else {
+                // requirement expects text value
+                $textValue = $texts[$index] ?? null;
+                if ($textValue === null || $textValue === '') {
+                    // no text provided, skip
+                    continue;
+                }
+
+                $valuationRequest->documents()->create([
+                    'document_requirement_id' => $requirementId,
+                    'file_id' => null,
+                    'text_value' => $textValue,
+                ]);
+            }
         }
     
         return response()->json([

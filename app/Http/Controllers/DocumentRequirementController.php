@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
 class DocumentRequirementController extends Controller
 {
     public function getData() { 
-        $data = DocumentRequirement::get();
+        $data = DocumentRequirement::orderBy('id','Desc')->get();
         
         $data = $data->map(function($item){
             $data = [];
@@ -26,6 +26,7 @@ class DocumentRequirementController extends Controller
             $data['property_type_name']= $item->propertyType? $item->propertyType->name: null;
             $data['service_type_name']= $item->serviceType? $item->serviceType->name: null;
             $data['is_file']= $item->is_file;
+            $data['type']= $item->is_file?'File':'Text';
             $data['created_at_date'] = $item->created_at ? Carbon::parse($item->created_at)->format("Y-m-d") : null;
             $data['created_at_time'] = $item->created_at ? Carbon::parse($item->created_at)->format("H:i:s") : null;
             return $data;
@@ -62,7 +63,6 @@ class DocumentRequirementController extends Controller
     public function update(Request $r, $id) {
         $r->validate([
             'document_name' => 'required',
-            'is_file' => 'nullable'
         ]);
     
         $data = DocumentRequirement::find($id);
@@ -76,7 +76,6 @@ class DocumentRequirementController extends Controller
     
         $data->update([
             'document_name' => $r->document_name,
-            'is_file' => $r->is_file
         ]);
     
         return response()->json([
