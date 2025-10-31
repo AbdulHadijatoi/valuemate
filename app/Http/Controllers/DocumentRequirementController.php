@@ -63,6 +63,7 @@ class DocumentRequirementController extends Controller
     public function update(Request $r, $id) {
         $r->validate([
             'document_name' => 'required',
+            'is_file' => 'required',
         ]);
     
         $data = DocumentRequirement::find($id);
@@ -76,6 +77,7 @@ class DocumentRequirementController extends Controller
     
         $data->update([
             'document_name' => $r->document_name,
+            'is_file' => $r->is_file,
         ]);
     
         return response()->json([
