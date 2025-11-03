@@ -18,7 +18,9 @@ class GuidelineController extends Controller
             $data['index'] = ++$index;
             $data['id'] = $item->id;
             $data['title'] = $item->title;
+            $data['title_ar'] = $item->title_ar;
             $data['description'] = $item->description;
+            $data['description_ar'] = $item->description_ar;
             $data['type'] = $item->type;
             return $data;
         });
@@ -31,13 +33,15 @@ class GuidelineController extends Controller
 
     public function getTerms() {
         $type = 'terms_of_service';
-        $guidelines = Guideline::where('type', $type)->first(['title','description']);
+        $guidelines = Guideline::where('type', $type)->first(['title','title_ar','description','description_ar']);
 
         return response()->json([
             'status' => true,
             'data' => [
                 'title' => $guidelines->title,
-                'content' => $guidelines->description
+                'title_ar' => $guidelines->title_ar,
+                'content' => $guidelines->description,
+                'content_ar' => $guidelines->description_ar
             ]
         ], 200);
     }
@@ -51,13 +55,15 @@ class GuidelineController extends Controller
     
     public function getPrivacyPolicy() {
         $type = 'privacy_policy';
-        $guidelines = Guideline::where('type', $type)->first(['title','description']);
+        $guidelines = Guideline::where('type', $type)->first(['title','title_ar','description','description_ar']);
 
         return response()->json([
             'status' => true,
             'data' => [
                 'title' => $guidelines->title,
-                'content' => $guidelines->description
+                'title_ar' => $guidelines->title_ar,
+                'content' => $guidelines->description,
+                'content_ar' => $guidelines->description_ar
             ]
         ], 200);
     }
@@ -66,7 +72,9 @@ class GuidelineController extends Controller
     public function storeGuideline(Request $request) {
         $request->validate([
             'title' => 'required|string',
+            'title_ar' => 'nullable|string',
             'description' => 'required|string',
+            'description_ar' => 'nullable|string',
             'type' => 'required|in:privacy_policy,terms_of_service',
         ]);
 
@@ -81,13 +89,17 @@ class GuidelineController extends Controller
     public function updateGuideline(Request $request, $id) {
         $request->validate([
             'title' => 'sometimes|required|string',
+            'title_ar' => 'nullable|string',
             'description' => 'sometimes|required|string',
+            'description_ar' => 'nullable|string',
         ]);
 
         $guideline = Guideline::findOrFail($id);
         $guideline->update([
             'title' => $request->input('title', $guideline->title),
+            'title_ar' => $request->input('title_ar', $guideline->title_ar),
             'description' => $request->input('description', $guideline->description),
+            'description_ar' => $request->input('description_ar', $guideline->description_ar),
         ]);
 
         return response()->json([

@@ -44,13 +44,18 @@ class ValuationRequestController extends Controller
             $data['company_name'] = $item->company ? $item->company->name : '-';
             $data['user_name'] = $item->user ? $item->user->first_name .' '. $item->user->last_name : '-';
             $data['property_type'] = $item->propertyType ? $item->propertyType->name : '-';
+            $data['property_type_ar'] = $item->propertyType ? $item->propertyType->name_ar : '-';
             $data['service_type'] = $item->serviceType ? $item->serviceType->name : '-';
+            $data['service_type_ar'] = $item->serviceType ? $item->serviceType->name_ar : '-';
             $data['request_type'] = $item->requestType ? $item->requestType->name : '-';
+            $data['request_type_ar'] = $item->requestType ? $item->requestType->name_ar : '-';
             $data['location'] = $item->location ? $item->location->name : '-';
+            $data['location_ar'] = $item->location ? $item->location->name_ar : '-';
             $data['service_pricing'] = $item->servicePricing ? $item->servicePricing->price : 'default';
             $data['area'] = $item->area ?? '-';
             $data['total_amount'] = $item->total_amount ?? '-';
             $data['status'] = $item->status ? $item->status->name : '-';
+            $data['status_ar'] = $item->status ? $item->status->name_ar : '-';
             $data['reference'] = $item->reference ?? '-';
             $data['created_at_date'] = $item->created_at ? Carbon::parse($item->created_at)->format('Y-m-d') : null;
             $data['created_at_time'] = $item->created_at ? Carbon::parse($item->created_at)->format('H:i:s') : null;
@@ -61,7 +66,7 @@ class ValuationRequestController extends Controller
                 $data['has_documents'] = $item->documents ->count() > 0 ? true : false;
                 $requiredDocs = DocumentRequirement::where('property_type_id', $item->property_type_id)
                     ->where('service_type_id', $item->service_type_id)
-                    ->get(['id', 'document_name', 'is_file']);
+                    ->get(['id', 'document_name', 'document_name_ar', 'is_file']);
                 $data['required_documents'] = $requiredDocs && $requiredDocs->count() > 0? $requiredDocs :null;
             }
             return $data;
@@ -135,6 +140,7 @@ class ValuationRequestController extends Controller
             return [
                 'id' => $document->id,
                 'document_name' => $document->documentRequirement ?$document->documentRequirement->document_name:null,
+                'document_name_ar' => $document->documentRequirement ?$document->documentRequirement->document_name_ar:null,
                 'is_file' => $document->documentRequirement ? $document->documentRequirement->is_file : null,
                 'full_path' => $document->document ? $document->document->full_path : null,
                 'text_value' => $document->text_value
@@ -379,14 +385,19 @@ class ValuationRequestController extends Controller
             $data['company_logo'] = $company->logo ? $company->logo->full_path : url(Setting::getValue('placeholder-image'));
             $data['user_name'] = $item->user ? $item->user->first_name .' '. $item->user->last_name : '-';
             $data['property_type'] = $item->propertyType ? $item->propertyType->name : '-';
+            $data['property_type_ar'] = $item->propertyType ? $item->propertyType->name_ar : '-';
             $data['service_type'] = $item->serviceType ? $item->serviceType->name : '-';
+            $data['service_type_ar'] = $item->serviceType ? $item->serviceType->name_ar : '-';
             $data['request_type'] = $item->requestType ? $item->requestType->name : '-';
+            $data['request_type_ar'] = $item->requestType ? $item->requestType->name_ar : '-';
             $data['location'] = $item->location ? $item->location->name : '-';
+            $data['location_ar'] = $item->location ? $item->location->name_ar : '-';
             $data['service_pricing'] = $item->servicePricing ? $item->servicePricing->price : 'default';
             $data['area'] = $item->area ?? '-';
             $data['total_amount'] = $item->total_amount ?? '-';
             $data['status_id'] = $item->status_id;
             $data['status'] = $item->status ? $item->status->name : '-';
+            $data['status_ar'] = $item->status ? $item->status->name_ar : '-';
             $data['reference'] = $item->reference ?? '-';
             $data['created_at_date'] = $item->created_at ? Carbon::parse($item->created_at)->format('Y-m-d') : null;
             $data['created_at_time'] = $item->created_at ? Carbon::parse($item->created_at)->format('H:i:s') : null;

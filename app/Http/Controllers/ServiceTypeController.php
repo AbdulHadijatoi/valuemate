@@ -33,6 +33,7 @@ class ServiceTypeController extends Controller
             $data = [];
             $data['id'] = $item->id;
             $data['name'] = $item->name;
+            $data['name_ar'] = $item->name_ar;
             $data['created_at_date'] = $item->created_at ? Carbon::parse($item->created_at)->format('Y-m-d') : null;
             $data['created_at_time'] = $item->created_at ? Carbon::parse($item->created_at)->format('H:i:s') : null;
 
@@ -81,10 +82,12 @@ class ServiceTypeController extends Controller
     public function store(Request $r) {
         $r->validate([
             'name' => 'required|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
         ]);
 
         ServiceType::create([
             'name' => $r->name,
+            'name_ar' => $r->name_ar,
         ])->save();
 
         return response()->json([
@@ -96,12 +99,14 @@ class ServiceTypeController extends Controller
     public function update(Request $r, $id) {
         $r->validate([
             'name' => 'required',
+            'name_ar' => 'nullable|string|max:255',
         ]);
     
         $serviceType = ServiceType::find($id);
         if ($serviceType) {
             $serviceType->update([
                 'name' => $r->name,
+                'name_ar' => $r->name_ar,
             ]);
     
             return response()->json([

@@ -26,7 +26,7 @@ class ConstantController extends Controller
         $locations = Location::all(); 
         $propertyTypes = PropertyType::all(); 
         $requestTypes = RequestType::all(); 
-        $requiredDocuments = DocumentRequirement::get(['property_type_id', 'service_type_id','document_name', 'is_file', 'id']); 
+        $requiredDocuments = DocumentRequirement::get(['property_type_id', 'service_type_id','document_name', 'document_name_ar', 'is_file', 'id']); 
         $propertyServiceTypes = PropertyServiceType::with(['propertyType', 'serviceType'])->get();
         $payment_methods = PaymentMethod::with('logo')->get();
 
@@ -35,6 +35,7 @@ class ConstantController extends Controller
 
             $data['id'] = $item->id;
             $data['name'] = $item->name ?? '-';
+            $data['name_ar'] = $item->name_ar ?? '-';
             $data['status'] = $item->status ?? '-';
             $data['image_url'] = $item->logo ? $item->logo->full_path : null;
             return $data;
@@ -46,12 +47,14 @@ class ConstantController extends Controller
         })->map(function ($items, $propertyTypeName) {
             return [
                 'property_type' => $propertyTypeName,
+                'property_type_ar' => $items->first()->propertyType->name_ar ?? null,
                 'property_type_id' => $items->first()->property_type_id,
                 'services' => $items->map(function ($item) {
                     return [
                         'id' => $item->id,
                         'service_type_id' => $item->service_type_id,
                         'service_type' => $item->serviceType->name ?? null,
+                        'service_type_ar' => $item->serviceType->name_ar ?? null,
                     ];
                 })->values(),
             ];
@@ -68,6 +71,7 @@ class ConstantController extends Controller
             $data['website'] = $company->companyDetails ? $company->companyDetails->website : '-';
             $data['status'] = $company->status;
             $data['description'] = $company->companyDetails ? $company->companyDetails->description ??'-' : '-';
+            $data['description_ar'] = $company->companyDetails ? $company->companyDetails->description_ar ??'-' : '-';
             return $data;
         });
 
@@ -75,6 +79,7 @@ class ConstantController extends Controller
             return [
                 'id' => $propertyType->id,
                 'name' => $propertyType->name,
+                'name_ar' => $propertyType->name_ar,
             ];
         });
 
@@ -82,12 +87,14 @@ class ConstantController extends Controller
             return [
                 'service_type_id' => $serviceType->id,
                 'service_type' => $serviceType->name,
+                'service_type_ar' => $serviceType->name_ar,
             ];
         });
         $locations = $locations->map(function ($location) {
             return [
                 'id' => $location->id,
                 'name' => $location->name,
+                'name_ar' => $location->name_ar,
             ];
         });
 
@@ -104,7 +111,9 @@ class ConstantController extends Controller
 
             $data['id'] = $item->id;
             $data['title'] = $item->title ?? '-';
+            $data['title_ar'] = $item->title_ar ?? '-';
             $data['description'] = $item->description ?? '-';
+            $data['description_ar'] = $item->description_ar ?? '-';
             $data['image_url'] = $item->banner ? $item->banner->full_path : null;
             $data['link'] = $item->link ?? '-';
             $data['ad_type'] = $item->ad_type ?? '-';
@@ -160,10 +169,10 @@ class ConstantController extends Controller
     }
     
     public function constantData(){
-        $property_types = PropertyType::get(['id','name']);
-        $companies = Company::get(['id','name']);
-        $request_types = RequestType::get(['id','name']);
-        $service_types = ServiceType::get(['id','name']);
+        $property_types = PropertyType::get(['id','name','name_ar']);
+        $companies = Company::get(['id','name','name_ar']);
+        $request_types = RequestType::get(['id','name','name_ar','description','description_ar']);
+        $service_types = ServiceType::get(['id','name','name_ar']);
         $data = PropertyServiceType::with(['propertyType', 'serviceType'])->get();
 
         $property_service_types = $data->groupBy(function ($item) {
@@ -171,12 +180,14 @@ class ConstantController extends Controller
         })->map(function ($items, $propertyTypeName) {
             return [
                 'property_type' => $propertyTypeName,
+                'property_type_ar' => $items->first()->propertyType->name_ar ?? null,
                 'property_type_id' => $items->first()->property_type_id,
                 'services' => $items->map(function ($item) {
                     return [
                         'id' => $item->id,
                         'service_type_id' => $item->service_type_id,
                         'service_type_name' => $item->serviceType->name ?? null,
+                        'service_type_name_ar' => $item->serviceType->name_ar ?? null,
                         'created_at_date' => $item->serviceType && $item->serviceType->created_at ? Carbon::parse($item->serviceType->created_at)->format("Y-m-d") : null,
                         'created_at_time' => $item->serviceType && $item->serviceType->created_at ? Carbon::parse($item->serviceType->created_at)->format("H:i:s") : null,
                     ];

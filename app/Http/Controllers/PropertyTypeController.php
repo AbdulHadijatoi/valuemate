@@ -33,6 +33,7 @@ class PropertyTypeController extends Controller
             $data = [];
             $data['id'] = $item->id;
             $data['name'] = $item->name;
+            $data['name_ar'] = $item->name_ar;
             $data['created_at_date'] = $item->created_at ? Carbon::parse($item->created_at)->format('Y-m-d') : null;
             $data['created_at_time'] = $item->created_at ? Carbon::parse($item->created_at)->format('H:i:s') : null;
 
@@ -81,10 +82,12 @@ class PropertyTypeController extends Controller
     public function store(Request $r) {
         $r->validate([
             'name' => 'required|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
         ]);
 
         PropertyType::create([
             'name' => $r->name,
+            'name_ar' => $r->name_ar,
         ])->save();
 
         return response()->json([
@@ -112,6 +115,7 @@ class PropertyTypeController extends Controller
     public function update(Request $r, $id) { 
         $r->validate([
             'name' => 'required|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
         ]);
 
         $property_type = PropertyType::find($id);
@@ -125,6 +129,7 @@ class PropertyTypeController extends Controller
 
         $property_type->update([
             'name' => $r->name,
+            'name_ar' => $r->name_ar,
         ]);
 
         return response()->json([

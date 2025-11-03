@@ -24,6 +24,10 @@ class File extends Model
 
     public function saveFile($file)
     {
+        if(!$file){
+            return null;
+        }
+        
         $path = $file->store('files');
         $this->path = $path;
         $this->type = $file->getClientMimeType();

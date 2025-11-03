@@ -34,7 +34,9 @@ class BannerAdController extends Controller
 
             $data['id'] = $item->id;
             $data['title'] = $item->title ?? '-';
+            $data['title_ar'] = $item->title_ar ?? '-';
             $data['description'] = $item->description ?? '-';
+            $data['description_ar'] = $item->description_ar ?? '-';
             $data['image_url'] = $item->banner ? $item->banner->full_path : null;
             $data['link'] = $item->link ?? '-';
             $data['ad_type'] = $item->ad_type ?? '-';
@@ -73,7 +75,9 @@ class BannerAdController extends Controller
 
         $r->validate([
             'title'=>'required',
+            'title_ar'=>'nullable',
             'description'=>'nullable',
+            'description_ar'=>'nullable',
             'file'=>'required',
             'link'=>'nullable',
             'ad_type'=>'nullable',
@@ -87,7 +91,9 @@ class BannerAdController extends Controller
 
         $data = [
             'title'=>$r->title,
+            'title_ar'=>$r->title_ar,
             'description'=>$r->description,
+            'description_ar'=>$r->description_ar,
             'file_id'=>$file->id,
             'link'=>$r->link,
             'ad_type'=>$r->ad_type,
@@ -123,8 +129,10 @@ class BannerAdController extends Controller
 
         $r->validate([
             'title'=>'required',
+            'title_ar'=>'nullable',
             'file'=>'nullable',
             'description'=>'nullable',
+            'description_ar'=>'nullable',
             'link'=>'nullable',
             'ad_type'=>'nullable',
             'start_date'=>'nullable',
@@ -142,7 +150,9 @@ class BannerAdController extends Controller
 
         $data = [
             'title'=>$r->title,
+            'title_ar'=>$r->title_ar,
             'description'=>$r->description,
+            'description_ar'=>$r->description_ar,
             'link'=>$r->link,
             'ad_type'=>$r->ad_type,
             'start_date'=>$r->start_date,

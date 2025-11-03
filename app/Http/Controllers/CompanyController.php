@@ -40,12 +40,14 @@ class CompanyController extends Controller
             $data['id'] = $company->id;
             $data['file'] = $company->logo ? $company->logo->full_path : url(Setting::getValue('placeholder-image'));
             $data['name'] = $company->name ?? '-';
+            $data['name_ar'] = $company->name_ar ?? '-';
             $data['address'] = $company->companyDetails ? $company->companyDetails->address : '-';
             $data['phone'] = $company->companyDetails ? $company->companyDetails->phone : '-';
             $data['email'] = $company->companyDetails ? $company->companyDetails->email : '-';
             $data['website'] = $company->companyDetails ? $company->companyDetails->website : '-';
             $data['status'] = $company->status;
             $data['description'] = $company->companyDetails ? $company->companyDetails->description ??'-' : '-';
+            $data['description_ar'] = $company->companyDetails ? $company->companyDetails->description_ar ??'-' : '-';
             $data['created_at_date'] = $company->created_at ? Carbon::parse($company->created_at)->format('Y-m-d') : null;
             $data['created_at_time'] = $company->created_at ? Carbon::parse($company->created_at)->format('H:i:s') : null;
             return $data;
@@ -78,7 +80,9 @@ class CompanyController extends Controller
     public function store(Request $r) {
         $r->validate([
             'name' => 'required|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
             'file' => 'nullable',
+            'description_ar' => 'nullable',
         ]);
 
         $file = new File();
@@ -86,6 +90,7 @@ class CompanyController extends Controller
 
         $company = Company::create([
             'name' => $r->name,
+            'name_ar' => $r->name_ar,
             'logo_file_id' => $file->id,
         ]);
 
@@ -96,6 +101,7 @@ class CompanyController extends Controller
         $companyDetails->phone = $r->phone;
         $companyDetails->website = $r->website;
         $companyDetails->description = $r->description;
+        $companyDetails->description_ar = $r->description_ar;
         $companyDetails->save();
 
         return response()->json([
@@ -124,11 +130,12 @@ class CompanyController extends Controller
 
         $r->validate([
             'name' => 'required|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
             'address' => 'nullable',
             'description' => 'nullable',
+            'description_ar' => 'nullable',
             'email' => 'nullable',
             'file' => 'nullable',
-            'name' => 'nullable',
             'phone' => 'nullable',
             'status' => 'nullable',
             'website' => 'nullable',
@@ -160,6 +167,7 @@ class CompanyController extends Controller
 
         $updateData = [
             'name' => $r->name,
+            'name_ar' => $r->name_ar,
         ];
 
         if($file){
@@ -176,6 +184,7 @@ class CompanyController extends Controller
                 "phone" => $r->phone,
                 "website" => $r->website,
                 "description" => $r->description,
+                "description_ar" => $r->description_ar,
             ]);
 
         }else{
@@ -187,6 +196,7 @@ class CompanyController extends Controller
             $companyDetails->phone = $r->phone;
             $companyDetails->website = $r->website;
             $companyDetails->description = $r->description;
+            $companyDetails->description_ar = $r->description_ar;
             $companyDetails->save();
 
         }

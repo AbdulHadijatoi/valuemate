@@ -16,7 +16,9 @@ class LocationController extends Controller
             $data = [];
             $data['id'] = $item->id;
             $data['name'] = $item->name;
+            $data['name_ar'] = $item->name_ar;
             $data['description'] = $item->description;
+            $data['description_ar'] = $item->description_ar;
             $data['latitude'] = $item->latitude;
             $data['longitude'] = $item->longitude;
             $data['status'] = $item->status;
@@ -46,7 +48,9 @@ class LocationController extends Controller
     public function store(Request $request) {
         $request->validate([
             'name' => 'required|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
             'description' => 'nullable|string',
+            'description_ar' => 'nullable|string',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
         ]);
@@ -63,7 +67,9 @@ class LocationController extends Controller
         // Validate the request data
         $request->validate([
             'name' => 'required|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
             'description' => 'nullable|string',
+            'description_ar' => 'nullable|string',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
             'status' => 'nullable',
@@ -81,7 +87,9 @@ class LocationController extends Controller
         
         $location->update([
             'name' => $request->name,
+            'name_ar' => $request->name_ar,
             'description' => $request->description,
+            'description_ar' => $request->description_ar,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'status' => $request->status ?? 1, // Default to 1 if not provided
