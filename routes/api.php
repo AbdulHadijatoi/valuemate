@@ -59,6 +59,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('checkout', [PaymentController::class, 'createThawaniCheckout']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
 
     Route::group(['prefix' => 'users'], function () {
         Route::post('update/{id}', [UserController::class, 'update']);
