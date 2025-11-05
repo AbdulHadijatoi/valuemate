@@ -20,6 +20,7 @@ use App\Http\Controllers\PropertyTypeController;
 use App\Http\Controllers\ServicePricingController;
 use App\Http\Controllers\ServiceTypeController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\SupportChatController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ValuationRequestController;
 use App\Models\PropertyServiceType;
@@ -71,6 +72,13 @@ Route::middleware('auth:api')->group(function () {
         Route::post('send-message', [ChatController::class, 'sendUserMessage']);
     });
 
+    // Support Chat - User endpoints
+    Route::group(['prefix' => 'support-chat'], function () {
+        Route::post('room', [SupportChatController::class, 'getOrCreateRoom']);
+        Route::get('messages', [SupportChatController::class, 'getUserMessages']);
+        Route::post('send', [SupportChatController::class, 'sendUserMessage']);
+    });
+
     
     Route::post('request-history', [ValuationRequestController::class, 'requestHistory']);
     Route::post('create-valuation-request', [ValuationRequestController::class, 'store']);
@@ -87,6 +95,14 @@ Route::middleware('auth:api')->group(function () {
             Route::get('/chat-room', [ChatRoomController::class, 'getOrCreateRoom']);
             Route::post('/chat-message', [ChatRoomController::class, 'sendMessage']);
             Route::get('/chat-messages/{roomId}', [ChatRoomController::class, 'getMessages']);
+        });
+
+        // Support Chat - Admin endpoints
+        Route::group(['prefix' => 'support-chat', 'middleware'=>'permission:manage chats'], function () {
+            Route::get('rooms', [SupportChatController::class, 'getAdminChatRooms']);
+            Route::get('unread-count', [SupportChatController::class, 'getUnreadCount']);
+            Route::get('room/{roomId}/messages', [SupportChatController::class, 'getAdminRoomMessages']);
+            Route::post('room/{roomId}/reply', [SupportChatController::class, 'sendAdminReply']);
         });
         
         Route::group(['prefix' => 'users', 'middleware'=>'permission:manage users'], function () {

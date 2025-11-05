@@ -217,6 +217,8 @@ class DatabaseSeeder extends Seeder
             ],
         ]);        
 
+        // Seed support chat data (uncomment to run)
+        // $this->call(SupportChatSeeder::class);
         
     }
 }

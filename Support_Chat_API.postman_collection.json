@@ -1,0 +1,590 @@
+{
+	"info": {
+		"_postman_id": "support-chat-api-2025",
+		"name": "Support Chat API",
+		"description": "Complete API collection for Support Chat functionality. Works for both Vue3 frontend and Flutter mobile app.\n\n## Authentication\nAll endpoints require Bearer token authentication. Include the token in the Authorization header:\n`Authorization: Bearer {your_token}`\n\n## Base URL\nReplace `{{base_url}}` with your API base URL (e.g., `http://localhost:8000/api` or `https://yourdomain.com/api`)\n\n## User Endpoints\nEndpoints prefixed with `/support-chat` are for regular users.\n\n## Admin Endpoints\nEndpoints prefixed with `/admin/support-chat` are for admin users and require 'manage chats' permission.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "User Endpoints",
+			"item": [
+				{
+					"name": "Get or Create Chat Room",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/support-chat/room",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"support-chat",
+								"room"
+							]
+						},
+						"description": "Get or create a chat room for the authenticated user. If the user doesn't have a room, one will be created automatically."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/support-chat/room",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"support-chat",
+										"room"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"status\": true,\n    \"data\": {\n        \"id\": 1,\n        \"user_id\": 2,\n        \"created_at\": \"2025-01-15T10:30:00.000000Z\"\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Get User Messages",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/support-chat/messages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"support-chat",
+								"messages"
+							]
+						},
+						"description": "Get all messages for the authenticated user's chat room. Messages are ordered by creation date (oldest first)."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/support-chat/messages",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"support-chat",
+										"messages"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"status\": true,\n    \"data\": [\n        {\n            \"id\": 1,\n            \"message\": \"Hello, I need help with my valuation request.\",\n            \"sender_id\": 2,\n            \"sender_name\": \"Test User 2\",\n            \"is_admin\": false,\n            \"is_read\": false,\n            \"created_at\": \"2025-01-15 10:30:00\",\n            \"created_at_human\": \"2 hours ago\"\n        },\n        {\n            \"id\": 2,\n            \"message\": \"Hello! Thank you for contacting us. Let me check your request.\",\n            \"sender_id\": 1,\n            \"sender_name\": \"Admin User\",\n            \"is_admin\": true,\n            \"is_read\": true,\n            \"created_at\": \"2025-01-15 11:00:00\",\n            \"created_at_human\": \"1 hour ago\"\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Send Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"Hello, I need help with my valuation request.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/support-chat/send",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"support-chat",
+								"send"
+							]
+						},
+						"description": "Send a message to support. The message will be visible to admin users. If the user doesn't have a chat room, one will be created automatically."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"message\": \"Hello, I need help.\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/support-chat/send",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"support-chat",
+										"send"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"status\": true,\n    \"message\": \"Message sent successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"message\": \"Hello, I need help with my valuation request.\",\n        \"sender_id\": 2,\n        \"created_at\": \"2025-01-15 10:30:00\"\n    }\n}"
+						},
+						{
+							"name": "Validation Error",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"message\": \"\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/support-chat/send",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"support-chat",
+										"send"
+									]
+								}
+							},
+							"status": "Unprocessable Entity",
+							"code": 422,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"message\": \"The message field is required.\",\n    \"errors\": {\n        \"message\": [\n            \"The message field is required.\"\n        ]\n    }\n}"
+						}
+					]
+				}
+			],
+			"description": "Endpoints for regular users to interact with support chat."
+		},
+		{
+			"name": "Admin Endpoints",
+			"item": [
+				{
+					"name": "Get All Chat Rooms",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/support-chat/rooms",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"support-chat",
+								"rooms"
+							]
+						},
+						"description": "Get all chat rooms with unread message counts. Rooms are ordered by last activity (most recent first)."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/admin/support-chat/rooms",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"admin",
+										"support-chat",
+										"rooms"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"status\": true,\n    \"data\": [\n        {\n            \"id\": 1,\n            \"user_id\": 2,\n            \"user_name\": \"Test User 2\",\n            \"user_email\": \"testuser2@example.com\",\n            \"unread_count\": 3,\n            \"last_message\": {\n                \"message\": \"Can someone please check my request?\",\n                \"created_at\": \"2025-01-15 05:00:00\",\n                \"created_at_human\": \"5 hours ago\"\n            },\n            \"updated_at\": \"2025-01-15 05:00:00\",\n            \"created_at\": \"2025-01-13 10:30:00\"\n        },\n        {\n            \"id\": 2,\n            \"user_id\": 3,\n            \"user_name\": \"Test User 3\",\n            \"user_email\": \"testuser3@example.com\",\n            \"unread_count\": 0,\n            \"last_message\": {\n                \"message\": \"Thank you for the excellent service!\",\n                \"created_at\": \"2025-01-10 14:20:00\",\n                \"created_at_human\": \"5 days ago\"\n            },\n            \"updated_at\": \"2025-01-10 14:20:00\",\n            \"created_at\": \"2025-01-10 14:20:00\"\n        }\n    ],\n    \"total_unread\": 3\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Unread Count",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/support-chat/unread-count",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"support-chat",
+								"unread-count"
+							]
+						},
+						"description": "Get the total count of unread messages from all users. Use this endpoint to display a badge/notification count. Poll this endpoint every 10 seconds for real-time updates."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/admin/support-chat/unread-count",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"admin",
+										"support-chat",
+										"unread-count"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"status\": true,\n    \"data\": {\n        \"unread_count\": 5\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Room Messages",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/support-chat/room/:roomId/messages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"support-chat",
+								"room",
+								":roomId",
+								"messages"
+							],
+							"variable": [
+								{
+									"key": "roomId",
+									"value": "1",
+									"description": "The ID of the chat room"
+								}
+							]
+						},
+						"description": "Get all messages for a specific chat room. When admin views a room, all unread messages from that user are automatically marked as read."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/admin/support-chat/room/1/messages",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"admin",
+										"support-chat",
+										"room",
+										"1",
+										"messages"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"status\": true,\n    \"data\": {\n        \"room\": {\n            \"id\": 1,\n            \"user_id\": 2,\n            \"user_name\": \"Test User 2\",\n            \"user_email\": \"testuser2@example.com\"\n        },\n        \"messages\": [\n            {\n                \"id\": 1,\n                \"message\": \"Hello, I need help with my valuation request.\",\n                \"sender_id\": 2,\n                \"sender_name\": \"Test User 2\",\n                \"is_admin\": false,\n                \"is_read\": true,\n                \"created_at\": \"2025-01-15 10:30:00\",\n                \"created_at_human\": \"2 hours ago\"\n            },\n            {\n                \"id\": 2,\n                \"message\": \"Hello! Thank you for contacting us. Let me check your request.\",\n                \"sender_id\": 1,\n                \"sender_name\": \"Admin User\",\n                \"is_admin\": true,\n                \"is_read\": true,\n                \"created_at\": \"2025-01-15 11:00:00\",\n                \"created_at_human\": \"1 hour ago\"\n            }\n        ]\n    }\n}"
+						},
+						{
+							"name": "Room Not Found",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/admin/support-chat/room/999/messages",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"admin",
+										"support-chat",
+										"room",
+										"999",
+										"messages"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"message\": \"No query results for model [App\\\\Models\\\\ChatRoom] 999\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Send Admin Reply",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"Hello! Thank you for contacting us. Let me check your request.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/support-chat/room/:roomId/reply",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"support-chat",
+								"room",
+								":roomId",
+								"reply"
+							],
+							"variable": [
+								{
+									"key": "roomId",
+									"value": "1",
+									"description": "The ID of the chat room"
+								}
+							]
+						},
+						"description": "Send a reply message to a user in a specific chat room. The message will be visible to the user immediately."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"message\": \"Hello! Thank you for contacting us.\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/admin/support-chat/room/1/reply",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"admin",
+										"support-chat",
+										"room",
+										"1",
+										"reply"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"status\": true,\n    \"message\": \"Reply sent successfully\",\n    \"data\": {\n        \"id\": 3,\n        \"message\": \"Hello! Thank you for contacting us. Let me check your request.\",\n        \"sender_id\": 1,\n        \"created_at\": \"2025-01-15 11:00:00\"\n    }\n}"
+						},
+						{
+							"name": "Validation Error",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"message\": \"\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/admin/support-chat/room/1/reply",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"admin",
+										"support-chat",
+										"room",
+										"1",
+										"reply"
+									]
+								}
+							},
+							"status": "Unprocessable Entity",
+							"code": 422,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"message\": \"The message field is required.\",\n    \"errors\": {\n        \"message\": [\n            \"The message field is required.\"\n        ]\n    }\n}"
+						}
+					]
+				}
+			],
+			"description": "Endpoints for admin users to manage support chats. Requires 'manage chats' permission."
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api",
+			"type": "string",
+			"description": "Base URL for the API. Change this to your production URL when deploying."
+		},
+		{
+			"key": "user_token",
+			"value": "your_user_bearer_token_here",
+			"type": "string",
+			"description": "Bearer token for authenticated user. Get this from the login endpoint."
+		},
+		{
+			"key": "admin_token",
+			"value": "your_admin_bearer_token_here",
+			"type": "string",
+			"description": "Bearer token for authenticated admin user. Get this from the login endpoint."
+		}
+	]
+}
+
