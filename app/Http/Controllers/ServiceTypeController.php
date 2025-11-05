@@ -4,14 +4,35 @@ namespace App\Http\Controllers;
 
 use App\Exports\ExportData;
 use App\Models\ServiceType;
+use App\Traits\Cacheable;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ServiceTypeController extends Controller
 {
+    use Cacheable;
    
     public function dataQuery($request, $export = false) {
+        // Don't cache exports
+        if ($export) {
+            return $this->dataQueryWithoutCache($request, true);
+        }
+        
+        // Build cache key from request parameters
+        $cacheKey = $this->getCacheKey('service_types_data', [
+            $request->search_keyword ?? '',
+            $request->from_date ?? '',
+            $request->to_date ?? '',
+            $request->per_page ?? '15',
+        ]);
+        
+        return $this->remember($cacheKey, function () use ($request) {
+            return $this->dataQueryWithoutCache($request, false);
+        }, 3600);
+    }
+
+    private function dataQueryWithoutCache($request, $export = false) {
         
         $data = ServiceType::when($request->search_keyword, function($query) use ($request){
             $query->where('name', 'like', '%' . $request->search_keyword . '%');
@@ -90,6 +111,10 @@ class ServiceTypeController extends Controller
             'name_ar' => $r->name_ar,
         ])->save();
 
+        // Clear related caches
+        $this->clearResourceCache('service_types');
+        $this->clearConstantCaches();
+
         return response()->json([
             'status' => true,
             'message' => 'Service Type created successfully'
@@ -108,6 +133,10 @@ class ServiceTypeController extends Controller
                 'name' => $r->name,
                 'name_ar' => $r->name_ar,
             ]);
+
+            // Clear related caches
+            $this->clearResourceCache('service_types', $id);
+            $this->clearConstantCaches();
     
             return response()->json([
                 'status' => true,
@@ -126,6 +155,11 @@ class ServiceTypeController extends Controller
         $serviceType = ServiceType::find($id);
         if ($serviceType) {
             $serviceType->delete();
+            
+            // Clear related caches
+            $this->clearResourceCache('service_types', $id);
+            $this->clearConstantCaches();
+            
             return response()->json([
                 'status' => true,
                 'message' => 'Service Type deleted'

@@ -9,6 +9,7 @@ use App\Models\CompanyDetail;
 use App\Models\File;
 use App\Models\PropertyType;
 use App\Models\Setting;
+use App\Traits\Cacheable;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -16,8 +17,28 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class CompanyController extends Controller
 {
+    use Cacheable;
 
     public function dataQuery($request, $export = false) {
+        // Don't cache exports
+        if ($export) {
+            return $this->dataQueryWithoutCache($request, true);
+        }
+        
+        // Build cache key from request parameters
+        $cacheKey = $this->getCacheKey('companies_data', [
+            $request->search_keyword ?? '',
+            $request->from_date ?? '',
+            $request->to_date ?? '',
+            $request->per_page ?? '15',
+        ]);
+        
+        return $this->remember($cacheKey, function () use ($request) {
+            return $this->dataQueryWithoutCache($request, false);
+        }, 3600);
+    }
+
+    private function dataQueryWithoutCache($request, $export = false) {
         
         $data = Company::when($request->search_keyword, function($query) use ($request){
             $query->where('name', 'like', '%' . $request->search_keyword . '%');
@@ -104,6 +125,10 @@ class CompanyController extends Controller
         $companyDetails->description_ar = $r->description_ar;
         $companyDetails->save();
 
+        // Clear related caches
+        $this->clearResourceCache('companies');
+        $this->clearConstantCaches();
+
         return response()->json([
             'status' => true,
             'message' => 'Company created successfully'
@@ -111,19 +136,23 @@ class CompanyController extends Controller
     }
 
     public function show($id) { 
-        $company = Company::find($id);
+        $cacheKey = 'company_' . $id;
         
-        if (!$company) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Company not found'
-            ], 404);
-        }
+        return $this->remember($cacheKey, function () use ($id) {
+            $company = Company::find($id);
+            
+            if (!$company) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Company not found'
+                ], 404);
+            }
 
-        return response()->json([
-            'status' => true,
-            'data' => $company
-        ], 200);
+            return response()->json([
+                'status' => true,
+                'data' => $company
+            ], 200);
+        }, 3600);
     }
     
     public function update(Request $r, $id) { 
@@ -201,6 +230,10 @@ class CompanyController extends Controller
 
         }
 
+        // Clear related caches
+        $this->clearResourceCache('companies', $id);
+        $this->clearConstantCaches();
+
         return response()->json([
             'status' => true,
             'message' => 'Company details updated successfully'
@@ -224,6 +257,10 @@ class CompanyController extends Controller
         }
 
         $company->delete();
+
+        // Clear related caches
+        $this->clearResourceCache('companies', $r->id);
+        $this->clearConstantCaches();
 
         return response()->json([
             'status' => true,

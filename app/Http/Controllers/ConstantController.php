@@ -14,13 +14,18 @@ use App\Models\ServicePricing;
 use App\Models\ServiceType;
 use App\Models\Setting;
 use App\Models\ValuationRequestStatus;
+use App\Traits\Cacheable;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class ConstantController extends Controller
 {
-    public function getData() { 
+    use Cacheable;
+
+    public function getData() {
+        return $this->remember('constant_data', function () { 
         $service_types = ServiceType::all(); 
         $companies = Company::all(); 
         $locations = Location::all(); 
@@ -139,21 +144,31 @@ class ConstantController extends Controller
             "settings" => $settings,
         ];
 
-        return response()->json([
-            'status' => true,
-            'data' => $data
-        ], 200);
+            return response()->json([
+                'status' => true,
+                'data' => $data
+            ], 200);
+        }, 3600);
     }
 
-    public function getSettingValue(Request $request) { 
-
+    public function getSettingValue(Request $request) {
+        $cacheKey = 'setting_value_' . $request->key;
+        
+        // Check cache first
+        $cached = Cache::get($cacheKey);
+        if ($cached !== null) {
+            return $cached;
+        }
+        
         $value = Setting::where('key', $request->key)->first(['value','is_file']);
         
         if (!$value) {
-            return response()->json([
+            $response = response()->json([
                 'status' => false,
                 'message' => "Setting option not found"
             ], 404);
+            // Don't cache 404 responses
+            return $response;
         }
 
         if($value->is_file){
@@ -162,13 +177,19 @@ class ConstantController extends Controller
             $value = $value->value;
         }
 
-        return response()->json([
+        $response = response()->json([
             'status' => true,
             'data' => $value
         ], 200);
+        
+        // Cache successful responses
+        Cache::put($cacheKey, $response, 3600);
+        
+        return $response;
     }
     
     public function constantData(){
+        return $this->remember('constant_data_detail', function () {
         $property_types = PropertyType::get(['id','name','name_ar']);
         $companies = Company::get(['id','name','name_ar']);
         $request_types = RequestType::get(['id','name','name_ar','description','description_ar']);
@@ -195,15 +216,16 @@ class ConstantController extends Controller
             ];
         })->values();
 
-        return response()->json([
-            'status' => true,
-            'data' => [
-                "property_service_types" => $property_service_types,
-                "service_types" => $service_types,
-                "property_types" => $property_types,
-                "companies" => $companies,
-                "request_types" => $request_types,
-            ]
-        ], 200);
+            return response()->json([
+                'status' => true,
+                'data' => [
+                    "property_service_types" => $property_service_types,
+                    "service_types" => $service_types,
+                    "property_types" => $property_types,
+                    "companies" => $companies,
+                    "request_types" => $request_types,
+                ]
+            ], 200);
+        }, 3600);
     }
 }

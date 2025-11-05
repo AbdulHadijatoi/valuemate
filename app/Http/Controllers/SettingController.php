@@ -4,12 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\File;
 use App\Models\Setting;
+use App\Traits\Cacheable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class SettingController extends Controller
 {
-    public function getData() { 
+    use Cacheable;
+
+    public function getData() {
+        return $this->remember('settings_data', function () { 
         $data = Setting::get(); 
         
 
@@ -30,10 +35,11 @@ class SettingController extends Controller
         });
 
 
-        return response()->json([
-            'status' => true,
-            'data' => $data
-        ], 200);
+            return response()->json([
+                'status' => true,
+                'data' => $data
+            ], 200);
+        }, 3600);
     }
     
     public function store(Request $r) {
@@ -46,6 +52,11 @@ class SettingController extends Controller
             'key' => $r->key,
             'value' => $r->value,
         ]);
+
+        // Clear related caches
+        $this->clearResourceCache('settings');
+        $this->clearConstantCaches();
+        Cache::forget('setting_value_' . $r->key);
 
         return response()->json([
             'status' => true,
@@ -70,6 +81,11 @@ class SettingController extends Controller
                 'is_file' => 1
             ],
         );
+
+        // Clear related caches
+        $this->clearResourceCache('settings');
+        $this->clearConstantCaches();
+        Cache::forget('setting_value_' . $r->key);
     
         return response()->json([
             'status' => true,
@@ -79,19 +95,23 @@ class SettingController extends Controller
     
 
     public function show($key) { 
-        $setting = Setting::where('key',$key)->first();
+        $cacheKey = 'setting_' . $key;
         
-        if (!$setting) {
-            return response()->json([
-                'status' => false,
-                'message' => "Setting option not found"
-            ], 404);
-        }
+        return $this->remember($cacheKey, function () use ($key) {
+            $setting = Setting::where('key',$key)->first();
+            
+            if (!$setting) {
+                return response()->json([
+                    'status' => false,
+                    'message' => "Setting option not found"
+                ], 404);
+            }
 
-        return response()->json([
-            'status' => true,
-            'data' => $setting
-        ], 200);
+            return response()->json([
+                'status' => true,
+                'data' => $setting
+            ], 200);
+        }, 3600);
     }
     
     public function update(Request $r, $key) { 
@@ -111,6 +131,12 @@ class SettingController extends Controller
         $setting->value = $r->value;
         $setting->save();
 
+        // Clear related caches
+        $this->clearResourceCache('settings');
+        $this->clearConstantCaches();
+        Cache::forget('setting_' . $key);
+        Cache::forget('setting_value_' . $key);
+
         return response()->json([
             'status' => true,
             'message' => 'Setting updated'
@@ -128,6 +154,12 @@ class SettingController extends Controller
         }
 
         $setting->delete();
+
+        // Clear related caches
+        $this->clearResourceCache('settings');
+        $this->clearConstantCaches();
+        Cache::forget('setting_' . $r->key);
+        Cache::forget('setting_value_' . $r->key);
 
         return response()->json([
             'status' => true,

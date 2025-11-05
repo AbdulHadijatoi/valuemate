@@ -3,46 +3,52 @@
 namespace App\Http\Controllers;
 
 use App\Models\Location;
+use App\Traits\Cacheable;
 use Illuminate\Http\Request;
 
 class LocationController extends Controller
 {
+    use Cacheable;
 
     public function getData(Request $request) {
+        return $this->remember('locations_data', function () {
+            $locations = Location::get();
 
-        $locations = Location::get();
+            $locations = $locations->map(function($item) {
+                $data = [];
+                $data['id'] = $item->id;
+                $data['name'] = $item->name;
+                $data['name_ar'] = $item->name_ar;
+                $data['description'] = $item->description;
+                $data['description_ar'] = $item->description_ar;
+                $data['latitude'] = $item->latitude;
+                $data['longitude'] = $item->longitude;
+                $data['status'] = $item->status;
+                $data['map_url'] = $item->map_url; // This will use the accessor defined in the Location model
+                $data['created_at_date'] = $item->created_at ? $item->created_at->format('Y-m-d') : null;
+                $data['created_at_time'] = $item->created_at ? $item->created_at->format('H:i:s') : null;
+                return $data;
+            });
 
-        $locations = $locations->map(function($item) {
-            $data = [];
-            $data['id'] = $item->id;
-            $data['name'] = $item->name;
-            $data['name_ar'] = $item->name_ar;
-            $data['description'] = $item->description;
-            $data['description_ar'] = $item->description_ar;
-            $data['latitude'] = $item->latitude;
-            $data['longitude'] = $item->longitude;
-            $data['status'] = $item->status;
-            $data['map_url'] = $item->map_url; // This will use the accessor defined in the Location model
-            $data['created_at_date'] = $item->created_at ? $item->created_at->format('Y-m-d') : null;
-            $data['created_at_time'] = $item->created_at ? $item->created_at->format('H:i:s') : null;
-            return $data;
-        });
-
-        return response()->json([
-            'status' => true,
-            'data' => $locations
-        ], 200);
+            return response()->json([
+                'status' => true,
+                'data' => $locations
+            ], 200);
+        }, 3600);
     }
 
-    public function index($id = null) { 
-
-        $data = Location::find($id);
-                    
-        return response()->json([
-            'status' => true,
-            'message' => 'Data retrieved',
-            'data' => $data??[]
-        ]);
+    public function index($id = null) {
+        $cacheKey = 'location_' . $id;
+        
+        return $this->remember($cacheKey, function () use ($id) {
+            $data = Location::find($id);
+                        
+            return response()->json([
+                'status' => true,
+                'message' => 'Data retrieved',
+                'data' => $data??[]
+            ]);
+        }, 3600);
     }
 
     public function store(Request $request) {
@@ -56,6 +62,10 @@ class LocationController extends Controller
         ]);
 
         Location::create($request->all());
+
+        // Clear related caches
+        $this->clearResourceCache('locations');
+        $this->clearConstantCaches();
 
         return response()->json([
             'status' => true,
@@ -95,6 +105,10 @@ class LocationController extends Controller
             'status' => $request->status ?? 1, // Default to 1 if not provided
         ]);
 
+        // Clear related caches
+        $this->clearResourceCache('locations', $id);
+        $this->clearConstantCaches();
+
         return response()->json([
             'status' => true,
             'message' => 'Location updated successfully'
@@ -113,6 +127,10 @@ class LocationController extends Controller
 
         $location->delete();
 
+        // Clear related caches
+        $this->clearResourceCache('locations', $id);
+        $this->clearConstantCaches();
+
         return response()->json([
             'status' => true,
             'message' => 'Location deleted successfully'
@@ -120,12 +138,16 @@ class LocationController extends Controller
     }
     
     public function show($id) {
-        $location = Location::findOrFail($id);
-        return response()->json([
-            'status' => true,
-            'mesage' => 'Location retrieved successfully',
-            'data' => $location
-        ], 200);
+        $cacheKey = 'location_' . $id;
+        
+        return $this->remember($cacheKey, function () use ($id) {
+            $location = Location::findOrFail($id);
+            return response()->json([
+                'status' => true,
+                'mesage' => 'Location retrieved successfully',
+                'data' => $location
+            ], 200);
+        }, 3600);
     }
 
 }

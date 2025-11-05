@@ -5,13 +5,35 @@ namespace App\Http\Controllers;
 use App\Models\BannerAd;
 use App\Models\File;
 use App\Models\Setting;
+use App\Traits\Cacheable;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class BannerAdController extends Controller
 {
+    use Cacheable;
+
     public function dataQuery($request, $export = false) {
+        // Don't cache exports
+        if ($export) {
+            return $this->dataQueryWithoutCache($request, true);
+        }
+        
+        // Build cache key from request parameters
+        $cacheKey = $this->getCacheKey('banners_data', [
+            $request->search_keyword ?? '',
+            $request->from_date ?? '',
+            $request->to_date ?? '',
+            $request->per_page ?? '15',
+        ]);
+        
+        return $this->remember($cacheKey, function () use ($request) {
+            return $this->dataQueryWithoutCache($request, false);
+        }, 3600);
+    }
+
+    private function dataQueryWithoutCache($request, $export = false) {
         
         $data = BannerAd::when($request->search_keyword, function($query) use ($request){
             $query->where('title', 'like', '%' . $request->search_keyword . '%');
@@ -103,6 +125,10 @@ class BannerAdController extends Controller
 
         BannerAd::create($data);
 
+        // Clear related caches
+        $this->clearResourceCache('banners');
+        $this->clearConstantCaches();
+
         return response()->json([
             'status' => true,
             'message' => 'Banner Ad created successfully'
@@ -110,19 +136,23 @@ class BannerAdController extends Controller
     }
 
     public function show($id) { 
-        $bannerAd = BannerAd::find($id);
+        $cacheKey = 'banner_' . $id;
         
-        if (!$bannerAd) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Banner Ad not found'
-            ], 404);
-        }
+        return $this->remember($cacheKey, function () use ($id) {
+            $bannerAd = BannerAd::find($id);
+            
+            if (!$bannerAd) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Banner Ad not found'
+                ], 404);
+            }
 
-        return response()->json([
-            'status' => true,
-            'data' => $bannerAd
-        ], 200);
+            return response()->json([
+                'status' => true,
+                'data' => $bannerAd
+            ], 200);
+        }, 3600);
     }
     
     public function update(Request $r, $id) { 
@@ -176,6 +206,10 @@ class BannerAdController extends Controller
 
         $bannerAd->update($data);
 
+        // Clear related caches
+        $this->clearResourceCache('banners', $id);
+        $this->clearConstantCaches();
+
         return response()->json([
             'status' => true,
             'message' => 'Banner Ad updated successfully'
@@ -200,6 +234,10 @@ class BannerAdController extends Controller
         }
 
         $bannerAd->delete();
+
+        // Clear related caches
+        $this->clearResourceCache('banners', $id);
+        $this->clearConstantCaches();
 
         return response()->json([
             'status' => true,

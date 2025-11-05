@@ -5,13 +5,35 @@ namespace App\Http\Controllers;
 use App\Exports\ExportData;
 use App\Models\BannerAd;
 use App\Models\PropertyType;
+use App\Traits\Cacheable;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
 class PropertyTypeController extends Controller
 {
+    use Cacheable;
+
     public function dataQuery($request, $export = false) {
+        // Don't cache exports
+        if ($export) {
+            return $this->dataQueryWithoutCache($request, true);
+        }
+        
+        // Build cache key from request parameters
+        $cacheKey = $this->getCacheKey('property_types_data', [
+            $request->search_keyword ?? '',
+            $request->from_date ?? '',
+            $request->to_date ?? '',
+            $request->per_page ?? '15',
+        ]);
+        
+        return $this->remember($cacheKey, function () use ($request) {
+            return $this->dataQueryWithoutCache($request, false);
+        }, 3600);
+    }
+
+    private function dataQueryWithoutCache($request, $export = false) {
         
         $data = PropertyType::when($request->search_keyword, function($query) use ($request){
             $query->where('name', 'like', '%' . $request->search_keyword . '%');
@@ -56,12 +78,12 @@ class PropertyTypeController extends Controller
             "search_keyword" => "nullable",
         ]);
 
-        $data = $this->dataQuery($request, $export);
-        $total = $data['total'];
+        $result = $this->dataQuery($request, $export);
+        $total = $result['total'];
         
         return response()->json([
             'status' => true,
-            'data' => $data['data'],
+            'data' => $result['data'],
             "total" => $total,
         ], 200);
     }
@@ -90,6 +112,10 @@ class PropertyTypeController extends Controller
             'name_ar' => $r->name_ar,
         ])->save();
 
+        // Clear related caches
+        $this->clearResourceCache('property_types');
+        $this->clearConstantCaches();
+
         return response()->json([
             'status' => true,
             'message' => 'Property Type created successfully'
@@ -97,19 +123,23 @@ class PropertyTypeController extends Controller
     }
 
     public function show($id) { 
-        $property_type = PropertyType::find($id);
+        $cacheKey = 'property_type_' . $id;
         
-        if (!$property_type) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Property Type not found'
-            ], 404);
-        }
+        return $this->remember($cacheKey, function () use ($id) {
+            $property_type = PropertyType::find($id);
+            
+            if (!$property_type) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Property Type not found'
+                ], 404);
+            }
 
-        return response()->json([
-            'status' => true,
-            'data' => $property_type
-        ], 200);
+            return response()->json([
+                'status' => true,
+                'data' => $property_type
+            ], 200);
+        }, 3600);
     }
     
     public function update(Request $r, $id) { 
@@ -132,6 +162,10 @@ class PropertyTypeController extends Controller
             'name_ar' => $r->name_ar,
         ]);
 
+        // Clear related caches
+        $this->clearResourceCache('property_types', $id);
+        $this->clearConstantCaches();
+
         return response()->json([
             'status' => true,
             'message' => 'Property Type updated successfully'
@@ -149,6 +183,10 @@ class PropertyTypeController extends Controller
         }
 
         $property_type->delete();
+
+        // Clear related caches
+        $this->clearResourceCache('property_types', $id);
+        $this->clearConstantCaches();
 
         return response()->json([
             'status' => true,

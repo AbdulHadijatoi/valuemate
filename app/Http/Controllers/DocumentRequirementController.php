@@ -9,12 +9,16 @@ use App\Models\PropertyType;
 use App\Models\ServicePricing;
 use App\Models\ServiceType;
 use App\Models\Setting;
+use App\Traits\Cacheable;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class DocumentRequirementController extends Controller
 {
-    public function getData() { 
+    use Cacheable;
+
+    public function getData() {
+        return $this->remember('document_requirements_data', function () { 
         $data = DocumentRequirement::orderBy('id','Desc')->get();
         
         $data = $data->map(function($item){
@@ -35,10 +39,11 @@ class DocumentRequirementController extends Controller
             return $data;
         });
 
-        return response()->json([
-            'status' => true,
-            'data' => $data,
-        ], 200);
+            return response()->json([
+                'status' => true,
+                'data' => $data,
+            ], 200);
+        }, 3600);
     }
     
     
@@ -58,6 +63,10 @@ class DocumentRequirementController extends Controller
             'document_name_ar' => $r->document_name_ar,
             'is_file' => $r->is_file,
         ]);
+
+        // Clear related caches
+        $this->clearResourceCache('document_requirements');
+        $this->clearConstantCaches();
     
         return response()->json([
             'status' => true,
@@ -86,6 +95,10 @@ class DocumentRequirementController extends Controller
             'document_name_ar' => $r->document_name_ar,
             'is_file' => $r->is_file,
         ]);
+
+        // Clear related caches
+        $this->clearResourceCache('document_requirements', $id);
+        $this->clearConstantCaches();
     
         return response()->json([
             'status' => true,
@@ -98,6 +111,10 @@ class DocumentRequirementController extends Controller
     
         if ($data) {
             $data->delete();
+
+            // Clear related caches
+            $this->clearResourceCache('document_requirements', $id);
+            $this->clearConstantCaches();
     
             return response()->json([
                 'status' => true,
