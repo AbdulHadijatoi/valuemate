@@ -43,36 +43,40 @@ class SupportChatController extends Controller
     {
         $user = auth()->user();
         
-        $room = ChatRoom::where('user_id', $user->id)->first();
+        $cacheKey = 'user_chat_messages_' . $user->id;
         
-        if (!$room) {
+        return $this->remember($cacheKey, function () use ($user) {
+            $room = ChatRoom::where('user_id', $user->id)->first();
+            
+            if (!$room) {
+                return response()->json([
+                    'status' => true,
+                    'data' => []
+                ]);
+            }
+
+            $messages = ChatMessage::where('chat_room_id', $room->id)
+                ->with(['sender:id,first_name,last_name,email'])
+                ->orderBy('created_at', 'asc')
+                ->get()
+                ->map(function ($message) use ($user) {
+                    return [
+                        'id' => $message->id,
+                        'message' => $message->message,
+                        'sender_id' => $message->sender_id,
+                        'sender_name' => $message->sender ? $message->sender->first_name . ' ' . $message->sender->last_name : 'System',
+                        'is_admin' => $message->sender_id !== $user->id,
+                        'is_read' => $message->is_read,
+                        'created_at' => $message->created_at ? Carbon::parse($message->created_at)->format('Y-m-d H:i:s') : null,
+                        'created_at_human' => $message->created_at ? Carbon::parse($message->created_at)->diffForHumans() : null,
+                    ];
+                });
+
             return response()->json([
                 'status' => true,
-                'data' => []
+                'data' => $messages
             ]);
-        }
-
-        $messages = ChatMessage::where('chat_room_id', $room->id)
-            ->with(['sender:id,first_name,last_name,email'])
-            ->orderBy('created_at', 'asc')
-            ->get()
-            ->map(function ($message) use ($user) {
-                return [
-                    'id' => $message->id,
-                    'message' => $message->message,
-                    'sender_id' => $message->sender_id,
-                    'sender_name' => $message->sender ? $message->sender->first_name . ' ' . $message->sender->last_name : 'System',
-                    'is_admin' => $message->sender_id !== $user->id,
-                    'is_read' => $message->is_read,
-                    'created_at' => $message->created_at ? Carbon::parse($message->created_at)->format('Y-m-d H:i:s') : null,
-                    'created_at_human' => $message->created_at ? Carbon::parse($message->created_at)->diffForHumans() : null,
-                ];
-            });
-
-        return response()->json([
-            'status' => true,
-            'data' => $messages
-        ]);
+        }, 300); // Cache for 5 minutes (shorter TTL for real-time feel)
     }
 
     /**
@@ -98,8 +102,11 @@ class SupportChatController extends Controller
             'is_read' => false, // Admin needs to read it
         ]);
 
-        // Clear cache for admin chat list (if caching is implemented)
-        // Note: Currently no caching for admin support chats
+        // Clear cache for this user and admin
+        $this->clearCache('user_chat_messages_' . $user->id);
+        $this->clearCache('admin_chat_rooms');
+        $this->clearCache('admin_unread_count');
+        $this->clearCache('admin_room_messages_' . $room->id);
 
         return response()->json([
             'status' => true,
@@ -118,41 +125,43 @@ class SupportChatController extends Controller
      */
     public function getAdminChatRooms(Request $request)
     {
-        $rooms = ChatRoom::with(['user:id,first_name,last_name,email', 'messages'])
-            ->orderBy('updated_at', 'desc')
-            ->get()
-            ->map(function ($room) {
-                // Count unread messages from the user (not from admin)
-                $unreadCount = ChatMessage::where('chat_room_id', $room->id)
-                    ->where('sender_id', $room->user_id)
-                    ->where('is_read', false)
-                    ->count();
-                
-                $lastMessage = $room->messages()->latest()->first();
-                
-                return [
-                    'id' => $room->id,
-                    'user_id' => $room->user_id,
-                    'user_name' => $room->user ? $room->user->first_name . ' ' . $room->user->last_name : 'Unknown',
-                    'user_email' => $room->user ? $room->user->email : '',
-                    'unread_count' => $unreadCount,
-                    'last_message' => $lastMessage ? [
-                        'message' => $lastMessage->message,
-                        'created_at' => $lastMessage->created_at ? Carbon::parse($lastMessage->created_at)->format('Y-m-d H:i:s') : null,
-                        'created_at_human' => $lastMessage->created_at ? Carbon::parse($lastMessage->created_at)->diffForHumans() : null,
-                    ] : null,
-                    'updated_at' => $room->updated_at ? Carbon::parse($room->updated_at)->format('Y-m-d H:i:s') : null,
-                    'created_at' => $room->created_at ? Carbon::parse($room->created_at)->format('Y-m-d H:i:s') : null,
-                ];
-            });
+        return $this->remember('admin_chat_rooms', function () {
+            $rooms = ChatRoom::with(['user:id,first_name,last_name,email', 'messages'])
+                ->orderBy('updated_at', 'desc')
+                ->get()
+                ->map(function ($room) {
+                    // Count unread messages from the user (not from admin)
+                    $unreadCount = ChatMessage::where('chat_room_id', $room->id)
+                        ->where('sender_id', $room->user_id)
+                        ->where('is_read', false)
+                        ->count();
+                    
+                    $lastMessage = $room->messages()->latest()->first();
+                    
+                    return [
+                        'id' => $room->id,
+                        'user_id' => $room->user_id,
+                        'user_name' => $room->user ? $room->user->first_name . ' ' . $room->user->last_name : 'Unknown',
+                        'user_email' => $room->user ? $room->user->email : '',
+                        'unread_count' => $unreadCount,
+                        'last_message' => $lastMessage ? [
+                            'message' => $lastMessage->message,
+                            'created_at' => $lastMessage->created_at ? Carbon::parse($lastMessage->created_at)->format('Y-m-d H:i:s') : null,
+                            'created_at_human' => $lastMessage->created_at ? Carbon::parse($lastMessage->created_at)->diffForHumans() : null,
+                        ] : null,
+                        'updated_at' => $room->updated_at ? Carbon::parse($room->updated_at)->format('Y-m-d H:i:s') : null,
+                        'created_at' => $room->created_at ? Carbon::parse($room->created_at)->format('Y-m-d H:i:s') : null,
+                    ];
+                });
 
-        $totalUnread = $rooms->sum('unread_count');
+            $totalUnread = $rooms->sum('unread_count');
 
-        return response()->json([
-            'status' => true,
-            'data' => $rooms,
-            'total_unread' => $totalUnread
-        ]);
+            return response()->json([
+                'status' => true,
+                'data' => $rooms,
+                'total_unread' => $totalUnread
+            ]);
+        }, 300); // Cache for 5 minutes
     }
 
     /**
@@ -160,6 +169,9 @@ class SupportChatController extends Controller
      */
     public function getAdminRoomMessages($roomId)
     {
+        // Clear cache first since we're about to mark messages as read
+        $this->clearCache('admin_room_messages_' . $roomId);
+        
         $room = ChatRoom::with(['user:id,first_name,last_name,email'])
             ->findOrFail($roomId);
 
@@ -186,8 +198,10 @@ class SupportChatController extends Controller
             ->where('is_read', false)
             ->update(['is_read' => true]);
 
-        // Clear cache (if caching is implemented)
-        // Note: Currently no caching for admin support chats
+        // Clear all related caches after marking as read
+        $this->clearCache('admin_chat_rooms');
+        $this->clearCache('admin_unread_count');
+        $this->clearCache('user_chat_messages_' . $room->user_id);
 
         return response()->json([
             'status' => true,
@@ -222,8 +236,11 @@ class SupportChatController extends Controller
             'is_read' => true, // Admin messages are auto-read
         ]);
 
-        // Clear cache (if caching is implemented)
-        // Note: Currently no caching for admin support chats
+        // Clear cache for this room and user
+        $this->clearCache('admin_chat_rooms');
+        $this->clearCache('admin_unread_count');
+        $this->clearCache('admin_room_messages_' . $roomId);
+        $this->clearCache('user_chat_messages_' . $room->user_id);
 
         return response()->json([
             'status' => true,
@@ -242,25 +259,27 @@ class SupportChatController extends Controller
      */
     public function getUnreadCount()
     {
-        // Get all chat rooms
-        $rooms = ChatRoom::with('user')->get();
-        
-        $unreadCount = 0;
-        foreach ($rooms as $room) {
-            // Count unread messages from the user (not from admin)
-            $count = ChatMessage::where('chat_room_id', $room->id)
-                ->where('sender_id', $room->user_id)
-                ->where('is_read', false)
-                ->count();
-            $unreadCount += $count;
-        }
+        return $this->remember('admin_unread_count', function () {
+            // Get all chat rooms
+            $rooms = ChatRoom::with('user')->get();
+            
+            $unreadCount = 0;
+            foreach ($rooms as $room) {
+                // Count unread messages from the user (not from admin)
+                $count = ChatMessage::where('chat_room_id', $room->id)
+                    ->where('sender_id', $room->user_id)
+                    ->where('is_read', false)
+                    ->count();
+                $unreadCount += $count;
+            }
 
-        return response()->json([
-            'status' => true,
-            'data' => [
-                'unread_count' => $unreadCount
-            ]
-        ]);
+            return response()->json([
+                'status' => true,
+                'data' => [
+                    'unread_count' => $unreadCount
+                ]
+            ]);
+        }, 300); // Cache for 5 minutes
     }
 }
 
