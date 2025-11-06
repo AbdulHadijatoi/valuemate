@@ -64,8 +64,8 @@ class DocumentRequirementController extends Controller
             'is_file' => $r->is_file,
         ]);
 
-        // Clear related caches
-        $this->clearResourceCache('document_requirements');
+        // Clear cache
+        $this->clearCache('document_requirements_data');
         $this->clearConstantCaches();
     
         return response()->json([
@@ -96,8 +96,8 @@ class DocumentRequirementController extends Controller
             'is_file' => $r->is_file,
         ]);
 
-        // Clear related caches
-        $this->clearResourceCache('document_requirements', $id);
+        // Clear cache
+        $this->clearCache('document_requirements_data');
         $this->clearConstantCaches();
     
         return response()->json([
@@ -112,8 +112,8 @@ class DocumentRequirementController extends Controller
         if ($data) {
             $data->delete();
 
-            // Clear related caches
-            $this->clearResourceCache('document_requirements', $id);
+            // Clear cache
+            $this->clearCache('document_requirements_data');
             $this->clearConstantCaches();
     
             return response()->json([

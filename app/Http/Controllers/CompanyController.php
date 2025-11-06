@@ -25,15 +25,8 @@ class CompanyController extends Controller
             return $this->dataQueryWithoutCache($request, true);
         }
         
-        // Build cache key from request parameters
-        $cacheKey = $this->getCacheKey('companies_data', [
-            $request->search_keyword ?? '',
-            $request->from_date ?? '',
-            $request->to_date ?? '',
-            $request->per_page ?? '15',
-        ]);
-        
-        return $this->remember($cacheKey, function () use ($request) {
+        // Use single cache key for all companies data
+        return $this->remember('companies_data', function () use ($request) {
             return $this->dataQueryWithoutCache($request, false);
         }, 3600);
     }
@@ -125,8 +118,8 @@ class CompanyController extends Controller
         $companyDetails->description_ar = $r->description_ar;
         $companyDetails->save();
 
-        // Clear related caches
-        $this->clearResourceCache('companies');
+        // Clear cache
+        $this->clearCache('companies_data');
         $this->clearConstantCaches();
 
         return response()->json([
@@ -230,8 +223,9 @@ class CompanyController extends Controller
 
         }
 
-        // Clear related caches
-        $this->clearResourceCache('companies', $id);
+        // Clear cache
+        $this->clearCache('companies_data');
+        $this->clearCache('company_' . $id);
         $this->clearConstantCaches();
 
         return response()->json([
@@ -258,8 +252,9 @@ class CompanyController extends Controller
 
         $company->delete();
 
-        // Clear related caches
-        $this->clearResourceCache('companies', $r->id);
+        // Clear cache
+        $this->clearCache('companies_data');
+        $this->clearCache('company_' . $r->id);
         $this->clearConstantCaches();
 
         return response()->json([

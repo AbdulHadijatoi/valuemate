@@ -10,10 +10,12 @@ use App\Models\RequestType;
 use App\Models\ServicePricing;
 use App\Models\ServiceType;
 use App\Models\Setting;
+use App\Traits\Cacheable;
 use Illuminate\Http\Request;
 
 class ServicePricingController extends Controller
 {
+    use Cacheable;
     public function getData() { 
         $data = ServicePricing::get();
     
@@ -69,6 +71,9 @@ class ServicePricingController extends Controller
             ]
         );
     
+        // Clear cache
+        $this->clearConstantCaches();
+    
         return response()->json([
             'status' => true,
             'message' => 'Service pricing created or updated'
@@ -92,6 +97,9 @@ class ServicePricingController extends Controller
         $data->update([
             'price' => $r->price
         ]);
+    
+        // Clear cache
+        $this->clearConstantCaches();
     
         return response()->json([
             'status' => true,
@@ -120,6 +128,10 @@ class ServicePricingController extends Controller
 
         if ($data) {
             $data->delete();
+            
+            // Clear cache
+            $this->clearConstantCaches();
+            
             return response()->json([
                 'status' => true,
                 'message' => 'Service Pricing deleted'

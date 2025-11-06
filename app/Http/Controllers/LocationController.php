@@ -63,8 +63,8 @@ class LocationController extends Controller
 
         Location::create($request->all());
 
-        // Clear related caches
-        $this->clearResourceCache('locations');
+        // Clear cache
+        $this->clearCache('locations_data');
         $this->clearConstantCaches();
 
         return response()->json([
@@ -105,8 +105,9 @@ class LocationController extends Controller
             'status' => $request->status ?? 1, // Default to 1 if not provided
         ]);
 
-        // Clear related caches
-        $this->clearResourceCache('locations', $id);
+        // Clear cache
+        $this->clearCache('locations_data');
+        $this->clearCache('location_' . $id);
         $this->clearConstantCaches();
 
         return response()->json([
@@ -127,8 +128,9 @@ class LocationController extends Controller
 
         $location->delete();
 
-        // Clear related caches
-        $this->clearResourceCache('locations', $id);
+        // Clear cache
+        $this->clearCache('locations_data');
+        $this->clearCache('location_' . $id);
         $this->clearConstantCaches();
 
         return response()->json([

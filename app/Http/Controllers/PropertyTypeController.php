@@ -20,15 +20,8 @@ class PropertyTypeController extends Controller
             return $this->dataQueryWithoutCache($request, true);
         }
         
-        // Build cache key from request parameters
-        $cacheKey = $this->getCacheKey('property_types_data', [
-            $request->search_keyword ?? '',
-            $request->from_date ?? '',
-            $request->to_date ?? '',
-            $request->per_page ?? '15',
-        ]);
-        
-        return $this->remember($cacheKey, function () use ($request) {
+        // Use single cache key for all property types data
+        return $this->remember('property_types_data', function () use ($request) {
             return $this->dataQueryWithoutCache($request, false);
         }, 3600);
     }
@@ -112,8 +105,8 @@ class PropertyTypeController extends Controller
             'name_ar' => $r->name_ar,
         ])->save();
 
-        // Clear related caches
-        $this->clearResourceCache('property_types');
+        // Clear cache
+        $this->clearCache('property_types_data');
         $this->clearConstantCaches();
 
         return response()->json([
@@ -162,8 +155,9 @@ class PropertyTypeController extends Controller
             'name_ar' => $r->name_ar,
         ]);
 
-        // Clear related caches
-        $this->clearResourceCache('property_types', $id);
+        // Clear cache
+        $this->clearCache('property_types_data');
+        $this->clearCache('property_type_' . $id);
         $this->clearConstantCaches();
 
         return response()->json([
@@ -184,8 +178,9 @@ class PropertyTypeController extends Controller
 
         $property_type->delete();
 
-        // Clear related caches
-        $this->clearResourceCache('property_types', $id);
+        // Clear cache
+        $this->clearCache('property_types_data');
+        $this->clearCache('property_type_' . $id);
         $this->clearConstantCaches();
 
         return response()->json([

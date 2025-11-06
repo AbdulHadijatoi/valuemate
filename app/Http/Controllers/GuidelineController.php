@@ -90,11 +90,11 @@ class GuidelineController extends Controller
 
         Guideline::create($request->all());
 
-        // Clear related caches
-        $this->clearResourceCache('guidelines');
+        // Clear cache
+        $this->clearCache('guidelines_data');
+        $this->clearCache('guideline_terms');
+        $this->clearCache('guideline_privacy');
         $this->clearConstantCaches();
-        Cache::forget('guideline_terms');
-        Cache::forget('guideline_privacy');
 
         return response()->json([
             'status' => true,
@@ -118,11 +118,11 @@ class GuidelineController extends Controller
             'description_ar' => $request->input('description_ar', $guideline->description_ar),
         ]);
 
-        // Clear related caches
-        $this->clearResourceCache('guidelines');
+        // Clear cache
+        $this->clearCache('guidelines_data');
+        $this->clearCache('guideline_terms');
+        $this->clearCache('guideline_privacy');
         $this->clearConstantCaches();
-        Cache::forget('guideline_terms');
-        Cache::forget('guideline_privacy');
 
         return response()->json([
             'status' => true,

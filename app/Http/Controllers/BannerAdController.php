@@ -20,15 +20,8 @@ class BannerAdController extends Controller
             return $this->dataQueryWithoutCache($request, true);
         }
         
-        // Build cache key from request parameters
-        $cacheKey = $this->getCacheKey('banners_data', [
-            $request->search_keyword ?? '',
-            $request->from_date ?? '',
-            $request->to_date ?? '',
-            $request->per_page ?? '15',
-        ]);
-        
-        return $this->remember($cacheKey, function () use ($request) {
+        // Use single cache key for all banners data
+        return $this->remember('banners_data', function () use ($request) {
             return $this->dataQueryWithoutCache($request, false);
         }, 3600);
     }
@@ -125,8 +118,8 @@ class BannerAdController extends Controller
 
         BannerAd::create($data);
 
-        // Clear related caches
-        $this->clearResourceCache('banners');
+        // Clear cache
+        $this->clearCache('banners_data');
         $this->clearConstantCaches();
 
         return response()->json([
@@ -206,8 +199,9 @@ class BannerAdController extends Controller
 
         $bannerAd->update($data);
 
-        // Clear related caches
-        $this->clearResourceCache('banners', $id);
+        // Clear cache
+        $this->clearCache('banners_data');
+        $this->clearCache('banner_' . $id);
         $this->clearConstantCaches();
 
         return response()->json([
@@ -235,8 +229,9 @@ class BannerAdController extends Controller
 
         $bannerAd->delete();
 
-        // Clear related caches
-        $this->clearResourceCache('banners', $id);
+        // Clear cache
+        $this->clearCache('banners_data');
+        $this->clearCache('banner_' . $id);
         $this->clearConstantCaches();
 
         return response()->json([

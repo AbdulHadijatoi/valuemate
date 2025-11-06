@@ -19,15 +19,8 @@ class ServiceTypeController extends Controller
             return $this->dataQueryWithoutCache($request, true);
         }
         
-        // Build cache key from request parameters
-        $cacheKey = $this->getCacheKey('service_types_data', [
-            $request->search_keyword ?? '',
-            $request->from_date ?? '',
-            $request->to_date ?? '',
-            $request->per_page ?? '15',
-        ]);
-        
-        return $this->remember($cacheKey, function () use ($request) {
+        // Use single cache key for all service types data
+        return $this->remember('service_types_data', function () use ($request) {
             return $this->dataQueryWithoutCache($request, false);
         }, 3600);
     }
@@ -111,9 +104,9 @@ class ServiceTypeController extends Controller
             'name_ar' => $r->name_ar,
         ])->save();
 
-        // Clear related caches
-        $this->clearResourceCache('service_types');
-        $this->clearConstantCaches();
+            // Clear cache
+            $this->clearCache('service_types_data');
+            $this->clearConstantCaches();
 
         return response()->json([
             'status' => true,
@@ -134,8 +127,8 @@ class ServiceTypeController extends Controller
                 'name_ar' => $r->name_ar,
             ]);
 
-            // Clear related caches
-            $this->clearResourceCache('service_types', $id);
+            // Clear cache
+            $this->clearCache('service_types_data');
             $this->clearConstantCaches();
     
             return response()->json([
@@ -156,8 +149,8 @@ class ServiceTypeController extends Controller
         if ($serviceType) {
             $serviceType->delete();
             
-            // Clear related caches
-            $this->clearResourceCache('service_types', $id);
+            // Clear cache
+            $this->clearCache('service_types_data');
             $this->clearConstantCaches();
             
             return response()->json([

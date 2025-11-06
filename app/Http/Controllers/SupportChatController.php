@@ -98,8 +98,8 @@ class SupportChatController extends Controller
             'is_read' => false, // Admin needs to read it
         ]);
 
-        // Clear cache for admin chat list
-        $this->clearResourceCache('admin_support_chats');
+        // Clear cache for admin chat list (if caching is implemented)
+        // Note: Currently no caching for admin support chats
 
         return response()->json([
             'status' => true,
@@ -186,8 +186,8 @@ class SupportChatController extends Controller
             ->where('is_read', false)
             ->update(['is_read' => true]);
 
-        // Clear cache
-        $this->clearResourceCache('admin_support_chats');
+        // Clear cache (if caching is implemented)
+        // Note: Currently no caching for admin support chats
 
         return response()->json([
             'status' => true,
@@ -222,8 +222,8 @@ class SupportChatController extends Controller
             'is_read' => true, // Admin messages are auto-read
         ]);
 
-        // Clear cache
-        $this->clearResourceCache('admin_support_chats');
+        // Clear cache (if caching is implemented)
+        // Note: Currently no caching for admin support chats
 
         return response()->json([
             'status' => true,

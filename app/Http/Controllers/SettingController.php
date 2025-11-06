@@ -53,10 +53,10 @@ class SettingController extends Controller
             'value' => $r->value,
         ]);
 
-        // Clear related caches
-        $this->clearResourceCache('settings');
+        // Clear cache
+        $this->clearCache('settings_data');
+        $this->clearCache('setting_value_' . $r->key);
         $this->clearConstantCaches();
-        Cache::forget('setting_value_' . $r->key);
 
         return response()->json([
             'status' => true,
@@ -82,10 +82,10 @@ class SettingController extends Controller
             ],
         );
 
-        // Clear related caches
-        $this->clearResourceCache('settings');
+        // Clear cache
+        $this->clearCache('settings_data');
+        $this->clearCache('setting_value_' . $r->key);
         $this->clearConstantCaches();
-        Cache::forget('setting_value_' . $r->key);
     
         return response()->json([
             'status' => true,
@@ -131,11 +131,11 @@ class SettingController extends Controller
         $setting->value = $r->value;
         $setting->save();
 
-        // Clear related caches
-        $this->clearResourceCache('settings');
+        // Clear cache
+        $this->clearCache('settings_data');
+        $this->clearCache('setting_' . $key);
+        $this->clearCache('setting_value_' . $key);
         $this->clearConstantCaches();
-        Cache::forget('setting_' . $key);
-        Cache::forget('setting_value_' . $key);
 
         return response()->json([
             'status' => true,
@@ -155,11 +155,11 @@ class SettingController extends Controller
 
         $setting->delete();
 
-        // Clear related caches
-        $this->clearResourceCache('settings');
+        // Clear cache
+        $this->clearCache('settings_data');
+        $this->clearCache('setting_' . $r->key);
+        $this->clearCache('setting_value_' . $r->key);
         $this->clearConstantCaches();
-        Cache::forget('setting_' . $r->key);
-        Cache::forget('setting_value_' . $r->key);
 
         return response()->json([
             'status' => true,

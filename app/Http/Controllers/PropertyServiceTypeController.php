@@ -7,11 +7,13 @@ use App\Models\PropertyServiceType;
 use App\Models\PropertyType;
 use App\Models\ServiceType;
 use App\Models\Setting;
+use App\Traits\Cacheable;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class PropertyServiceTypeController extends Controller
 {
+    use Cacheable;
     public function getData() { 
         $data = PropertyServiceType::with(['propertyType', 'serviceType'])->get();
         $grouped = $data->map(function ($item) {
@@ -46,6 +48,9 @@ class PropertyServiceTypeController extends Controller
             ],
             [] // <- second argument: values to update/create
         );
+    
+        // Clear cache
+        $this->clearConstantCaches();
     
         return response()->json([
             'status' => true,
@@ -84,6 +89,10 @@ class PropertyServiceTypeController extends Controller
         $data = PropertyServiceType::find($id);
         if ($data) {
             $data->delete();
+            
+            // Clear cache
+            $this->clearConstantCaches();
+            
             return response()->json([
                 'status' => true,
                 'message' => 'Property Service Type deleted'

@@ -47,6 +47,24 @@ class ConstantController extends Controller
         });
 
         $statuses = ValuationRequestStatus::get();
+        $statuses = $statuses->map(function ($status) {
+            return [
+                'id' => $status->id,
+                'name' => $status->name ?? '-',
+                'name_ar' => $status->name_ar ?? '-',
+            ];
+        });
+        
+        $requestTypes = $requestTypes->map(function ($requestType) {
+            return [
+                'id' => $requestType->id,
+                'name' => $requestType->name ?? '-',
+                'name_ar' => $requestType->name_ar ?? '-',
+                'description' => $requestType->description ?? '-',
+                'description_ar' => $requestType->description_ar ?? '-',
+            ];
+        });
+        
         $propertyServiceTypes = $propertyServiceTypes->groupBy(function ($item) {
             return $item->propertyType->name ?? 'Unknown'; // Group by property type name
         })->map(function ($items, $propertyTypeName) {
@@ -70,6 +88,7 @@ class ConstantController extends Controller
             $data['id'] = $company->id;
             $data['file'] = $company->logo ? $company->logo->full_path : url(Setting::getValue('placeholder-image'));
             $data['name'] = $company->name ?? '-';
+            $data['name_ar'] = $company->name_ar ?? '-';
             $data['address'] = $company->companyDetails ? $company->companyDetails->address : '-';
             $data['phone'] = $company->companyDetails ? $company->companyDetails->phone : '-';
             $data['email'] = $company->companyDetails ? $company->companyDetails->email : '-';

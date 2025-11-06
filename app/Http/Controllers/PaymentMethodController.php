@@ -6,12 +6,14 @@ use App\Models\BannerAd;
 use App\Models\File;
 use App\Models\PaymentMethod;
 use App\Models\Setting;
+use App\Traits\Cacheable;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class PaymentMethodController extends Controller
 {
+    use Cacheable;
     public function dataQuery() {
         
         $data = PaymentMethod::with('logo')->get();
@@ -59,6 +61,9 @@ class PaymentMethodController extends Controller
 
         PaymentMethod::create($data);
 
+        // Clear cache
+        $this->clearConstantCaches();
+
         return response()->json([
             'status' => true,
             'message' => 'Payment method created successfully'
@@ -102,6 +107,9 @@ class PaymentMethodController extends Controller
 
         $payment_method->update($data);
 
+        // Clear cache
+        $this->clearConstantCaches();
+
         return response()->json([
             'status' => true,
             'message' => 'Payment Method updated successfully'
@@ -126,6 +134,9 @@ class PaymentMethodController extends Controller
         }
 
         $payment_method->delete();
+
+        // Clear cache
+        $this->clearConstantCaches();
 
         return response()->json([
             'status' => true,
