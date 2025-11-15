@@ -11,15 +11,15 @@ Artisan::command('inspire', function () {
 // Define your scheduled tasks here
 
 // Test scheduled task - runs every minute (for testing purposes)
-Schedule::command('test:scheduled-task')
-    ->everyMinute()
-    ->withoutOverlapping();
+// Schedule::command('test:scheduled-task')
+//     ->everyMinute()
+//     ->withoutOverlapping();
 
 // Process queued jobs
-Schedule::command('queue:work --stop-when-empty')
-    ->everyMinute()
-    ->withoutOverlapping()
-    ->runInBackground();
+// Schedule::command('queue:work --stop-when-empty')
+//     ->everyMinute()
+//     ->withoutOverlapping()
+//     ->runInBackground();
 
 // Example: Run a custom command daily at midnight
 // Schedule::command('your:custom-command')
