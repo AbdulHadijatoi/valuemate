@@ -30,26 +30,63 @@ class StatusUpdatedMail extends Mailable
 
         // Attach file documents and prepare text documents
         $textDocuments = [];
+        
+        // Log documents for debugging (remove in production if not needed)
+        \Log::info('StatusUpdatedMail - Documents count: ' . count($this->documents));
+        \Log::info('StatusUpdatedMail - Documents data: ' . json_encode($this->documents));
+        
         foreach ($this->documents as $document) {
-            if (isset($document['is_file']) && $document['is_file'] && isset($document['file_path'])) {
+            // Handle file documents
+            // Check is_file as both boolean and integer (database might store 1/0)
+            $isFile = isset($document['is_file']) && ($document['is_file'] === true || $document['is_file'] === 1 || $document['is_file'] === '1');
+            
+            if ($isFile && isset($document['file_path']) && !empty($document['file_path'])) {
                 // It's a file, attach it
-                // Try different disk configurations to find the file
                 $filePath = null;
-                $disks = ['local', 'public'];
                 
-                foreach ($disks as $disk) {
-                    $potentialPath = Storage::disk($disk)->path($document['file_path']);
+                // First, try using Storage facade with default disk
+                try {
+                    // Laravel's $file->store('files') typically stores to storage/app/files by default
+                    // But the default disk config might change this, so try multiple approaches
+                    $defaultDisk = config('filesystems.default', 'local');
+                    
+                    // Try with the default disk first
+                    $potentialPath = Storage::disk($defaultDisk)->path($document['file_path']);
                     if (file_exists($potentialPath)) {
                         $filePath = $potentialPath;
-                        break;
+                    }
+                } catch (\Exception $e) {
+                    // Continue to next method
+                }
+                
+                // Try different disk configurations if default didn't work
+                if (!$filePath) {
+                    $disks = ['local', 'public'];
+                    foreach ($disks as $disk) {
+                        try {
+                            $potentialPath = Storage::disk($disk)->path($document['file_path']);
+                            if (file_exists($potentialPath)) {
+                                $filePath = $potentialPath;
+                                break;
+                            }
+                        } catch (\Exception $e) {
+                            continue;
+                        }
                     }
                 }
                 
-                // If still not found, try storage_path('app') directly
+                // If still not found, try direct paths (Laravel's $file->store() typically stores to storage/app/)
                 if (!$filePath) {
-                    $directPath = storage_path('app/' . $document['file_path']);
-                    if (file_exists($directPath)) {
-                        $filePath = $directPath;
+                    $directPaths = [
+                        storage_path('app/' . $document['file_path']),           // storage/app/files/xxx
+                        storage_path('app/public/' . $document['file_path']),    // storage/app/public/files/xxx
+                    ];
+                    
+                    foreach ($directPaths as $directPath) {
+                        if (file_exists($directPath)) {
+                            $filePath = $directPath;
+                            break;
+                        }
                     }
                 }
                 
@@ -63,20 +100,35 @@ class StatusUpdatedMail extends Mailable
                         $mimeToExt = [
                             'image/jpeg' => 'jpg',
                             'image/png' => 'png',
+                            'image/gif' => 'gif',
                             'application/pdf' => 'pdf',
                             'application/msword' => 'doc',
                             'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+                            'application/vnd.ms-excel' => 'xls',
+                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'xlsx',
                         ];
                         $extension = $mimeToExt[$document['file_type']] ?? 'pdf';
                     }
+                    if (!$extension) {
+                        $extension = 'pdf'; // Default extension
+                    }
                     $attachmentName = $fileName . '.' . $extension;
                     $mail->attach($filePath, ['as' => $attachmentName]);
+                    \Log::info('StatusUpdatedMail - Attached file: ' . $filePath . ' as ' . $attachmentName);
+                } else {
+                    \Log::warning('StatusUpdatedMail - File not found: ' . ($document['file_path'] ?? 'no path'));
                 }
-            } else if (isset($document['text_value'])) {
+            } 
+            
+            // Handle text documents (check separately as a document can have both file and text)
+            if (isset($document['text_value']) && $document['text_value'] !== null && $document['text_value'] !== '') {
                 // It's a text document, collect for display in email
                 $textDocuments[] = $document;
+                \Log::info('StatusUpdatedMail - Added text document: ' . ($document['document_name'] ?? 'unnamed'));
             }
         }
+        
+        \Log::info('StatusUpdatedMail - Text documents count: ' . count($textDocuments));
 
         // Pass text documents to view
         return $mail->with(['textDocuments' => $textDocuments]);

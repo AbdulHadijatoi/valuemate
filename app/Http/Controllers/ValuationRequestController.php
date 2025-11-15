@@ -431,6 +431,13 @@ class ValuationRequestController extends Controller
         ]);
 
         if ($valuationRequest->user && $valuationRequest->user->email) {
+            // Refresh the model to ensure we have the latest data
+            $valuationRequest->refresh();
+            
+            // Unload existing documents and reload with all nested relationships
+            $valuationRequest->unsetRelation('documents');
+            $valuationRequest->load('documents.document', 'documents.documentRequirement');
+            
             $data = [
                 'user_name' => $valuationRequest->user->first_name . ' ' . $valuationRequest->user->last_name,
                 'reference' => $valuationRequest->reference,
@@ -441,29 +448,39 @@ class ValuationRequestController extends Controller
                 'created_at_time' => $valuationRequest->created_at ? Carbon::parse($valuationRequest->created_at)->format('H:i:s') : null,
             ];
 
-            // Load documents with relationships
-            $valuationRequest->load('documents.document', 'documents.documentRequirement');
-            
             // Prepare documents data for email
             $documents = [];
+            \Log::info('ValuationRequestController - Documents loaded: ' . $valuationRequest->documents->count());
+            
             foreach ($valuationRequest->documents as $document) {
                 $docData = [
                     'document_name' => $document->documentRequirement ? $document->documentRequirement->document_name : null,
                     'document_name_ar' => $document->documentRequirement ? $document->documentRequirement->document_name_ar : null,
-                    'is_file' => $document->documentRequirement ? $document->documentRequirement->is_file : null,
+                    'is_file' => $document->documentRequirement ? $document->documentRequirement->is_file : false,
                 ];
 
+                // Check if it's a file document
                 if ($document->documentRequirement && $document->documentRequirement->is_file && $document->document) {
                     // File document
                     $docData['file_path'] = $document->document->path;
                     $docData['file_type'] = $document->document->type;
-                } else if ($document->text_value) {
+                    \Log::info('ValuationRequestController - Found file document: ' . $docData['file_path']);
+                } 
+                
+                // Check if it's a text document
+                if ($document->text_value !== null && $document->text_value !== '') {
                     // Text document
                     $docData['text_value'] = $document->text_value;
+                    \Log::info('ValuationRequestController - Found text document: ' . ($docData['document_name'] ?? 'unnamed'));
                 }
 
-                $documents[] = $docData;
+                // Only add documents that have either file or text value
+                if (isset($docData['file_path']) || isset($docData['text_value'])) {
+                    $documents[] = $docData;
+                }
             }
+            
+            \Log::info('ValuationRequestController - Prepared documents count: ' . count($documents));
 
             // Queue the email
             Mail::to($valuationRequest->user->email)->queue(new StatusUpdatedMail($data, $documents));
