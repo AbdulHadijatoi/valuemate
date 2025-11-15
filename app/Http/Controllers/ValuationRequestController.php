@@ -441,7 +441,32 @@ class ValuationRequestController extends Controller
                 'created_at_time' => $valuationRequest->created_at ? Carbon::parse($valuationRequest->created_at)->format('H:i:s') : null,
             ];
 
-            Mail::to($valuationRequest->user->email)->send(new StatusUpdatedMail($data));
+            // Load documents with relationships
+            $valuationRequest->load('documents.document', 'documents.documentRequirement');
+            
+            // Prepare documents data for email
+            $documents = [];
+            foreach ($valuationRequest->documents as $document) {
+                $docData = [
+                    'document_name' => $document->documentRequirement ? $document->documentRequirement->document_name : null,
+                    'document_name_ar' => $document->documentRequirement ? $document->documentRequirement->document_name_ar : null,
+                    'is_file' => $document->documentRequirement ? $document->documentRequirement->is_file : null,
+                ];
+
+                if ($document->documentRequirement && $document->documentRequirement->is_file && $document->document) {
+                    // File document
+                    $docData['file_path'] = $document->document->path;
+                    $docData['file_type'] = $document->document->type;
+                } else if ($document->text_value) {
+                    // Text document
+                    $docData['text_value'] = $document->text_value;
+                }
+
+                $documents[] = $docData;
+            }
+
+            // Queue the email
+            Mail::to($valuationRequest->user->email)->queue(new StatusUpdatedMail($data, $documents));
         }
     
         return response()->json([
