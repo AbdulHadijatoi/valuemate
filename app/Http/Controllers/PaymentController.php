@@ -78,6 +78,13 @@ class PaymentController extends Controller
 
         $sessionResponse = $this->createThawaniSession($payment, $valuationRequest->total_amount, $paymentMethod, $customerId);
         Log::info('Session Response: ' . $sessionResponse->body());
+        Log::info('Request Data: ' . json_encode([
+            $payment,
+            $valuationRequest->total_amount,
+            $paymentMethod,
+            $customerId
+        ]));
+
         if ($sessionResponse->successful()) {
             $sessionId = $sessionResponse['data']['session_id'];
             // $thawaniPaymentId = $sessionResponse['data']['payment_id'];
