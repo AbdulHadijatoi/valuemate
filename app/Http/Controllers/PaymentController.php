@@ -249,6 +249,11 @@ class PaymentController extends Controller
                     'lastPayment'
                 ])->first();
 
+                // Refresh and load documents with relationships
+                $valuationRequest->refresh();
+                $valuationRequest->unsetRelation('documents');
+                $valuationRequest->load('documents.document', 'documents.documentRequirement');
+
                 $emailData = [
                     'id' => $valuationRequest->id,
                     'company_name' => optional($valuationRequest->company)->name ?? '-',
@@ -267,9 +272,43 @@ class PaymentController extends Controller
                     'payment_status' => optional($valuationRequest->lastPayment)->status ?? null,
                 ];
 
+                // Prepare documents data for email
+                $documents = [];
+                \Log::info('PaymentController - Documents loaded: ' . $valuationRequest->documents->count());
+                
+                foreach ($valuationRequest->documents as $document) {
+                    $docData = [
+                        'document_name' => $document->documentRequirement ? $document->documentRequirement->document_name : null,
+                        'document_name_ar' => $document->documentRequirement ? $document->documentRequirement->document_name_ar : null,
+                        'is_file' => $document->documentRequirement ? $document->documentRequirement->is_file : false,
+                    ];
+
+                    // Check if it's a file document
+                    if ($document->documentRequirement && $document->documentRequirement->is_file && $document->document) {
+                        // File document
+                        $docData['file_path'] = $document->document->path;
+                        $docData['file_type'] = $document->document->type;
+                        \Log::info('PaymentController - Found file document: ' . $docData['file_path']);
+                    } 
+                    
+                    // Check if it's a text document
+                    if ($document->text_value !== null && $document->text_value !== '') {
+                        // Text document
+                        $docData['text_value'] = $document->text_value;
+                        \Log::info('PaymentController - Found text document: ' . ($docData['document_name'] ?? 'unnamed'));
+                    }
+
+                    // Only add documents that have either file or text value
+                    if (isset($docData['file_path']) || isset($docData['text_value'])) {
+                        $documents[] = $docData;
+                    }
+                }
+                
+                \Log::info('PaymentController - Prepared documents count: ' . count($documents));
+
                 try {
                     if ($valuationRequest->user && $valuationRequest->user->email) {
-                        Mail::to($valuationRequest->user->email)->send(new PaymentSuccessMail($emailData, 'user'));
+                        Mail::to($valuationRequest->user->email)->send(new PaymentSuccessMail($emailData, 'user', $documents));
                     }
                 } catch (Exception $e) {
                     Log::error('Failed to send email to user: ' . $e->getMessage());
@@ -279,7 +318,7 @@ class PaymentController extends Controller
                 
                 if ($company_email) {
                     try {
-                        Mail::to($company_email)->send(new PaymentSuccessMail($emailData, 'company'));
+                        Mail::to($company_email)->send(new PaymentSuccessMail($emailData, 'company', $documents));
                     } catch (Exception $e) {
                         Log::error('Failed to send email to company: ' . $e->getMessage());
                     }
@@ -288,7 +327,7 @@ class PaymentController extends Controller
                 $admin_email = Setting::getValue('admin_email');
                 if ($admin_email) {
                     try {
-                        Mail::to($admin_email)->send(new PaymentSuccessMail($emailData, 'admin'));
+                        Mail::to($admin_email)->send(new PaymentSuccessMail($emailData, 'admin', $documents));
                     } catch (Exception $e) {
                         Log::error('Failed to send email to admin: ' . $e->getMessage());
                     }

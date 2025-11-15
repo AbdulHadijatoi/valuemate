@@ -38,7 +38,23 @@
         </tbody>
     </table>
 
-    <p style="color: #4a5568;">If you have any questions, please contact support.</p>
+    @if(isset($textDocuments) && count($textDocuments) > 0)
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+            <h3 style="color: #2d3748; margin-bottom: 15px;">Document Information:</h3>
+            @foreach($textDocuments as $textDoc)
+                <div style="margin-bottom: 15px;">
+                    <p style="color: #2d3748; font-weight: bold; margin-bottom: 5px;">
+                        {{ $textDoc['document_name'] ?? 'Document' }}:
+                    </p>
+                    <p style="color: #4a5568; background-color: #f7fafc; padding: 10px; border-left: 3px solid #4299e1; margin: 0;">
+                        {{ $textDoc['text_value'] ?? '' }}
+                    </p>
+                </div>
+            @endforeach
+        </div>
+    @endif
+
+    <p style="color: #4a5568; margin-top: 20px;">If you have any questions, please contact support.</p>
 
     <p style="color: #4a5568;">Best regards,<br><strong>Valumate Team</strong></p>
 @endsection
